@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/user_session.dart';
 import '../theme/app_theme.dart';
+import '../utils/validators.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/saga_logo.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
-import '../models/user_session.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +18,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _contactCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -38,34 +40,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _showMessage(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
-  }
-
   void _register() {
-    if (_nameCtrl.text.trim().isEmpty ||
-        _contactCtrl.text.trim().isEmpty ||
-        _passCtrl.text.isEmpty ||
-        _confirmCtrl.text.isEmpty) {
-      _showMessage('Semua kolom wajib diisi');
-      return;
-    }
-    if (_passCtrl.text.length < 6) {
-      _showMessage('Sandi minimal 6 karakter');
-      return;
-    }
-    if (_passCtrl.text != _confirmCtrl.text) {
-      _showMessage('Sandi dan ulangi sandi tidak sama');
-      return;
-    }
-    // TODO: sambungkan ke pendaftaran (API / Firebase).
-   UserSession.instance.register(
-     name: _nameCtrl.text,
-     contact: _contactCtrl.text,
-   );
+    // Berhenti di sini jika ada isian yang belum valid (pesan error tampil).
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
 
+    UserSession.instance.register(
+      name: _nameCtrl.text,
+      contact: _contactCtrl.text,
+    );
+    // TODO: sambungkan ke pendaftaran (API / Firebase).
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainShell()),
     );
@@ -94,10 +78,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   InputDecoration _decoration(String hint, IconData icon, {Widget? suffix}) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(6),
-      borderSide: const BorderSide(color: AppColors.border),
-    );
+    OutlineInputBorder outline(Color color) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: BorderSide(color: color),
+        );
+    const red = Color(0xFFC62828);
     return InputDecoration(
       fillColor: Colors.white,
       filled: true,
@@ -107,10 +92,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       suffixIcon: suffix,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(vertical: 14),
-      enabledBorder: border,
-      focusedBorder: border.copyWith(
-        borderSide: const BorderSide(color: AppColors.primary),
-      ),
+      errorStyle: const TextStyle(fontSize: 10, color: red, height: 1.2),
+      errorMaxLines: 2,
+      enabledBorder: outline(AppColors.border),
+      focusedBorder: outline(AppColors.primary),
+      errorBorder: outline(red),
+      focusedErrorBorder: outline(red),
     );
   }
 
@@ -230,113 +217,128 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _header(),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Daftar Akun',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Bergabunglah dengan SAGA TANI untuk\nmengelola pertanian Anda dengan lebih mudah.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            height: 1.4,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _nameCtrl,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          style: const TextStyle(fontSize: 12),
-                          decoration: _decoration(
-                              'Nama Lengkap', Icons.person_outline),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _contactCtrl,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          style: const TextStyle(fontSize: 12),
-                          decoration: _decoration(
-                              'No. HP atau Email', Icons.smartphone_outlined),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _passCtrl,
-                          obscureText: _obscure,
-                          textInputAction: TextInputAction.next,
-                          style: const TextStyle(fontSize: 12),
-                          decoration: _decoration(
-                            'Sandi',
-                            Icons.lock_outline,
-                            suffix: _visibilityToggle(_obscure,
-                                () => setState(() => _obscure = !_obscure)),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _confirmCtrl,
-                          obscureText: _obscureConfirm,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _register(),
-                          style: const TextStyle(fontSize: 12),
-                          decoration: _decoration(
-                            'Ulangi Sandi',
-                            Icons.lock_outline,
-                            suffix: _visibilityToggle(
-                                _obscureConfirm,
-                                () => setState(() =>
-                                    _obscureConfirm = !_obscureConfirm)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        GradientButton(
-                          label: 'Daftar',
-                          onPressed: _register,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: const [
-                            Expanded(child: Divider(color: AppColors.border)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text('atau',
-                                  style: TextStyle(fontSize: 11)),
+                    child: Form(
+                      key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Daftar Akun',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
                             ),
-                            Expanded(child: Divider(color: AppColors.border)),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Sudah punya akun? ',
-                                style: TextStyle(
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Bergabunglah dengan SAGA TANI untuk\nmengelola pertanian Anda dengan lebih mudah.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              height: 1.4,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _nameCtrl,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                            validator: Validators.name,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: _decoration(
+                                'Nama Lengkap', Icons.person_outline),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _contactCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            validator: (v) =>
+                                Validators.emailOrPhone(v) ??
+                                (UserSession.instance.isRegistered(v ?? '')
+                                    ? 'Akun ini sudah terdaftar, silakan masuk'
+                                    : null),
+                            style: const TextStyle(fontSize: 12),
+                            decoration: _decoration('No. HP atau Email',
+                                Icons.smartphone_outlined),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _passCtrl,
+                            obscureText: _obscure,
+                            textInputAction: TextInputAction.next,
+                            validator: Validators.newPassword,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: _decoration(
+                              'Sandi',
+                              Icons.lock_outline,
+                              suffix: _visibilityToggle(_obscure,
+                                  () => setState(() => _obscure = !_obscure)),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _confirmCtrl,
+                            obscureText: _obscureConfirm,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _register(),
+                            validator: (v) =>
+                                Validators.confirm(v, _passCtrl.text),
+                            style: const TextStyle(fontSize: 12),
+                            decoration: _decoration(
+                              'Ulangi Sandi',
+                              Icons.lock_outline,
+                              suffix: _visibilityToggle(
+                                  _obscureConfirm,
+                                  () => setState(() =>
+                                      _obscureConfirm = !_obscureConfirm)),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GradientButton(
+                            label: 'Daftar',
+                            onPressed: _register,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: const [
+                              Expanded(
+                                  child: Divider(color: AppColors.border)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('atau',
+                                    style: TextStyle(fontSize: 11)),
+                              ),
+                              Expanded(
+                                  child: Divider(color: AppColors.border)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Sudah punya akun? ',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textMuted)),
+                              GestureDetector(
+                                onTap: _goToLogin,
+                                child: const Text(
+                                  'Masuk di sini',
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.textMuted)),
-                            GestureDetector(
-                              onTap: _goToLogin,
-                              child: const Text(
-                                'Masuk di sini',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.link,
-                                  fontWeight: FontWeight.w600,
+                                    color: AppColors.link,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 60),
-                      ],
+                            ],
+                          ),
+                          const SizedBox(height: 60),
+                        ],
+                      ),
                     ),
                   ),
                 ],

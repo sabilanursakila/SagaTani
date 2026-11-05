@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _mode = 1; // 0 = Terjadwal, 1 = Manual
+  int _mode = 1; // 0 = Otomatis, 1 = Manual
 
   static const _cardShadow = [
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
@@ -40,8 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
               _sectionTitle('Mode Operasi'),
               _modeSelector(),
               const SizedBox(height: 16),
-              _sectionTitle('Ringkasan Hari Ini'),
-              _summary(),
+              _sectionTitle('Pemilihan Suara'),
+              _soundPicker(),
+              const SizedBox(height: 16),
+              _sectionTitle('Riwayat Aktivitas'),
+              _history(),
             ],
           ),
         ),
@@ -119,8 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(Icons.circle, size: 6, color: Color(0xFF4CD964)),
                     SizedBox(width: 4),
                     Text('Online',
-                        style: TextStyle(
-                            color: Color(0xFF4CD964), fontSize: 9)),
+                        style:
+                            TextStyle(color: Color(0xFF4CD964), fontSize: 9)),
                   ],
                 ),
               ],
@@ -138,53 +141,72 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       );
 
+  /// Tiga status dalam satu kartu, dipisah garis tegak.
   Widget _systemStatus() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _cardShadow,
       ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _StatusItem(
-              icon: Icons.sensors, label: 'Sensor', value: 'Aktif', active: true),
-          _StatusItem(
-              icon: Icons.volume_up_outlined, label: 'Suara', value: 'Berjalan'),
-          _StatusItem(
-              icon: Icons.phonelink_ring, label: 'Status', value: 'Terhubung'),
-        ],
+      child: const IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _StatusItem(
+                  icon: Icons.sensors,
+                  label: 'Sensor',
+                  value: 'Aktif',
+                  active: true),
+            ),
+            VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE6E6E6)),
+            Expanded(
+              child: _StatusItem(
+                  icon: Icons.volume_up_outlined,
+                  label: 'Suara',
+                  value: 'Berjalan'),
+            ),
+            VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE6E6E6)),
+            Expanded(
+              child: _StatusItem(
+                  icon: Icons.phonelink_ring,
+                  label: 'Status',
+                  value: 'Terhubung'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  /// Dua kartu lebar: Otomatis dan Manual.
   Widget _modeSelector() {
     Widget item(int index, IconData icon, String label) {
       final selected = _mode == index;
-      return GestureDetector(
-        onTap: () => setState(() => _mode = index),
-        child: Container(
-          width: 76,
-          height: 62,
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primary : Colors.white,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: _cardShadow,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon,
-                  size: 20, color: selected ? Colors.white : Colors.black),
-              const SizedBox(height: 6),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : Colors.black)),
-            ],
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _mode = index),
+          child: Container(
+            height: 58,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary : Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: _cardShadow,
+            ),
+            child: Row(
+              children: [
+                Icon(icon,
+                    size: 20, color: selected ? Colors.white : Colors.black),
+                const SizedBox(width: 14),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.white : Colors.black)),
+              ],
+            ),
           ),
         ),
       );
@@ -192,29 +214,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Row(
       children: [
-        item(0, Icons.calendar_month_outlined, 'Terjadwal'),
-        const SizedBox(width: 12),
+        item(0, Icons.calendar_month_outlined, 'Otomatis'),
+        const SizedBox(width: 14),
         item(1, Icons.smartphone, 'Manual'),
       ],
     );
   }
 
-  Widget _summary() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: const [
-        Expanded(
-          child: _SummaryCard(
-              title: 'Aktivitas Deteksi', value: '5', unit: 'Kali', trend: '67%'),
+  Widget _soundPicker() {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(6),
+      elevation: 3,
+      shadowColor: AppColors.shadow,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: () {}, // TODO: buka daftar suara
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          child: Row(
+            children: [
+              Icon(Icons.volume_up_outlined, size: 20),
+              SizedBox(width: 14),
+              Expanded(
+                child: Text('Daftar Suara',
+                    style:
+                        TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+              ),
+              Icon(Icons.chevron_right, size: 20),
+            ],
+          ),
         ),
-        SizedBox(width: 12),
-        Expanded(
-          child: _SummaryCard(
-              title: 'Suara Diputar', value: '12', unit: 'Kali', trend: '58%'),
-        ),
-        SizedBox(width: 4),
-        Icon(Icons.chevron_right, size: 22),
-      ],
+      ),
+    );
+  }
+
+  /// Kartu riwayat aktivitas (daftar aktivitas akan tampil di sini).
+  Widget _history() {
+    return Container(
+      width: double.infinity,
+      height: 110,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: _cardShadow,
+      ),
+      child: const Text('Belum ada aktivitas',
+          style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
     );
   }
 }
@@ -235,6 +282,7 @@ class _StatusItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 26),
         const SizedBox(height: 4),
@@ -245,72 +293,6 @@ class _StatusItem extends StatelessWidget {
                 fontSize: 8,
                 color: active ? AppColors.online : AppColors.textDark)),
       ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String unit;
-  final String trend;
-
-  const _SummaryCard({
-    required this.title,
-    required this.value,
-    required this.unit,
-    required this.trend,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: const [
-          BoxShadow(
-              color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 9, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 10),
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 3),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(unit, style: const TextStyle(fontSize: 9)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(Icons.arrow_upward, size: 12, color: AppColors.online),
-              const SizedBox(width: 2),
-              Text(trend,
-                  style: const TextStyle(
-                      fontSize: 9,
-                      color: AppColors.online,
-                      fontWeight: FontWeight.w600)),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

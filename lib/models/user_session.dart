@@ -16,6 +16,10 @@ class UserSession extends ChangeNotifier {
   String get name => _name.isEmpty ? 'Pengguna' : _name;
   String get contact => _contact.isEmpty ? '-' : _contact;
 
+  /// Apakah email / no. HP ini sudah pernah didaftarkan.
+  bool isRegistered(String contact) =>
+      _accounts.containsKey(contact.trim().toLowerCase());
+
   /// Dipanggil saat pendaftaran berhasil.
   void register({required String name, required String contact}) {
     final n = name.trim();
