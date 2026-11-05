@@ -7,6 +7,7 @@ import '../widgets/saga_logo.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
 import 'register_screen.dart';
+import '../models/user_session.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     // TODO: sambungkan ke autentikasi (API / Firebase).
+   UserSession.instance.login(_emailCtrl.text);
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainShell()),
     );

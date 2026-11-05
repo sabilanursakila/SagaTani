@@ -7,6 +7,7 @@ import '../widgets/saga_logo.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
+import '../models/user_session.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -60,6 +61,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     // TODO: sambungkan ke pendaftaran (API / Firebase).
+   UserSession.instance.register(
+     name: _nameCtrl.text,
+     contact: _contactCtrl.text,
+   );
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const MainShell()),
     );

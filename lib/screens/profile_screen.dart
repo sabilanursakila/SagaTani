@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/user_session.dart';
 import '../theme/app_theme.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/saga_logo.dart';
@@ -46,6 +47,7 @@ class ProfileScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
+              UserSession.instance.logout();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,
@@ -143,7 +145,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _userInfo() {
-    return Padding(
+    return AnimatedBuilder(
+      animation: UserSession.instance,
+      builder: (context, _) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
@@ -157,11 +161,15 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Username',
+                Text(UserSession.instance.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style:
                         TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
-                const Text('Username123@gmail.com',
+                Text(UserSession.instance.contact,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style:
                         TextStyle(fontSize: 10, color: AppColors.textMuted)),
                 const SizedBox(height: 6),
@@ -180,6 +188,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

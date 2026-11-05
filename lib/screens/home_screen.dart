@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/user_session.dart';
 import '../theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -49,31 +50,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _header() {
-    return Row(
-      children: [
-        const CircleAvatar(
-          radius: 30,
-          backgroundColor: Color(0xFFD9D9D9),
-          child: Icon(Icons.person, size: 44, color: Colors.black),
-        ),
-        const SizedBox(width: 14),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Halo, Pak Taufiq',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-              SizedBox(height: 2),
-              Text('Petani Sawah Sejahtera',
-                  style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
-            ],
-          ),
-        ),
-        IconButton(
-          onPressed: () {}, // TODO: notifikasi
-          icon: const Icon(Icons.notifications_none, size: 28),
-        ),
-      ],
+    return AnimatedBuilder(
+      animation: UserSession.instance,
+      builder: (context, _) {
+        final user = UserSession.instance;
+        return Row(
+          children: [
+            const CircleAvatar(
+              radius: 30,
+              backgroundColor: Color(0xFFD9D9D9),
+              child: Icon(Icons.person, size: 44, color: Colors.black),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Halo, ${user.name}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  const Text('Petani Sawah Sejahtera',
+                      style:
+                          TextStyle(fontSize: 9, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {}, // TODO: notifikasi
+              icon: const Icon(Icons.notifications_none, size: 28),
+            ),
+          ],
+        );
+      },
     );
   }
 
