@@ -14,6 +14,7 @@ class AppColors {
 class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
+        fontFamily: 'Poppins',
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
