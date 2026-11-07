@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
+import 'sound_selection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenDevice;
@@ -229,7 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
       shadowColor: AppColors.shadow,
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
-        onTap: () {}, // TODO: buka daftar suara
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SoundSelectionScreen()),
+        ),
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           child: Row(

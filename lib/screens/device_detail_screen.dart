@@ -3,19 +3,28 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/icon_badge.dart';
 
-class DeviceDetailScreen extends StatefulWidget {
+class _InfoItem {
+  final IconData icon;
+  final String title;
+  final String value;
+  const _InfoItem(this.icon, this.title, this.value);
+}
+
+/// Detail Perangkat: status perangkat dalam satu halaman.
+class DeviceDetailScreen extends StatelessWidget {
   final VoidCallback? onBack;
   const DeviceDetailScreen({super.key, this.onBack});
 
-  @override
-  State<DeviceDetailScreen> createState() => _DeviceDetailScreenState();
-}
-
-class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
-  int _tab = 0; // 0 = Status, 1 = Informasi
-
   static const _shadow = [
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
+  ];
+
+  static const _items = [
+    _InfoItem(Icons.sensors, 'Sensor', 'Aktif'),
+    _InfoItem(Icons.volume_up_outlined, 'Suara yang Diputar', 'Suara Elang'),
+    _InfoItem(Icons.volume_down_outlined, 'Volume Suara', 'Volume 75%'),
+    _InfoItem(Icons.battery_full, 'Baterai', '87 %'),
+    _InfoItem(Icons.history, 'Waktu Operasi Terakhir', '24 sep 2026 09:25'),
   ];
 
   @override
@@ -30,7 +39,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: widget.onBack,
+                    onPressed: onBack,
                     icon: const Icon(Icons.arrow_back),
                   ),
                   const Text('Detail Perangkat',
@@ -41,9 +50,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
               const SizedBox(height: 12),
               _deviceHeader(),
               const SizedBox(height: 20),
-              _tabs(),
-              const SizedBox(height: 16),
-              if (_tab == 0) ..._statusTab() else ..._infoTab(),
+              for (final item in _items) _infoCard(item),
             ],
           ),
         ),
@@ -97,84 +104,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
     );
   }
 
-  Widget _tabs() {
-    Widget tab(String label, int index) {
-      final selected = _tab == index;
-      return Expanded(
-        child: GestureDetector(
-          onTap: () => setState(() => _tab = index),
-          child: Container(
-            height: 34,
-            alignment: Alignment.center,
-            decoration: selected
-                ? const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.primary, width: 1),
-                    ),
-                  )
-                : BoxDecoration(
-                    color: const Color(0xFFE8E8E8),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: selected ? AppColors.primary : Colors.black,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        tab('Status', 0),
-        const SizedBox(width: 16),
-        tab('Informasi', 1),
-      ],
-    );
-  }
-
-  List<Widget> _statusTab() {
-    return [
-      _infoCard(Icons.sensors, 'Sensor', 'Aktif'),
-      _infoCard(Icons.tune, 'Mode Operasi', 'Deteksi Sensor'),
-      _infoCard(Icons.volume_up_outlined, 'Suara yang Diputar', 'Suara Elang'),
-      _infoCard(
-          Icons.history, 'Waktu Operasi Terakhir', '24 sep 2026 09:25'),
-      const SizedBox(height: 6),
-      SizedBox(
-        width: double.infinity,
-        height: 46,
-        child: ElevatedButton(
-          onPressed: () {}, // TODO: ubah mode operasi
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          ),
-          child: const Text('Ubah Mode Operasi',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-        ),
-      ),
-    ];
-  }
-
-  // Data contoh: layar tab Informasi belum ada di desain Figma.
-  List<Widget> _infoTab() {
-    return [
-      _infoCard(Icons.qr_code_2, 'ID Perangkat', 'R-001'),
-      _infoCard(Icons.wifi, 'Status Koneksi', 'Online'),
-      _infoCard(Icons.person_outline, 'Pemilik', 'Pak Taufiq'),
-    ];
-  }
-
-  Widget _infoCard(IconData icon, String title, String value) {
+  Widget _infoCard(_InfoItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -186,21 +116,25 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
       ),
       child: Row(
         children: [
-          IconBadge(icon: icon, radius: 16),
+          IconBadge(icon: item.icon, radius: 16),
           const SizedBox(width: 18),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 10, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 3),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.link)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.title,
+                    style: const TextStyle(
+                        fontSize: 10, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 3),
+                Text(item.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.link)),
+              ],
+            ),
           ),
         ],
       ),

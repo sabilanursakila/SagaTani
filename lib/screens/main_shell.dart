@@ -7,6 +7,7 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 
 /// Kerangka utama: 4 halaman + menu navigasi bawah.
+/// Urutan tab: 0 Beranda, 1 Detail Perangkat, 2 Akun, 3 Pengaturan.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -25,9 +26,9 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _index,
         children: [
-          HomeScreen(onOpenDevice: () => _go(2)),
-          const ProfileScreen(),
+          HomeScreen(onOpenDevice: () => _go(1)),
           DeviceDetailScreen(onBack: () => _go(0)),
+          const ProfileScreen(),
           const SettingsScreen(),
         ],
       ),
