@@ -28,7 +28,7 @@ class _MainShellState extends State<MainShell> {
         children: [
           HomeScreen(onOpenDevice: () => _go(1)),
           DeviceDetailScreen(onBack: () => _go(0)),
-          const ProfileScreen(),
+          ProfileScreen(onBack: () => _go(0)),
           const SettingsScreen(),
         ],
       ),
