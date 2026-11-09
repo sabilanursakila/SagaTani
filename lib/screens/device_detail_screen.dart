@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/icon_badge.dart';
+import '../widgets/tr.dart';
 
 class _InfoItem {
   final IconData icon;

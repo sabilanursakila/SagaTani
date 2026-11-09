@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'models/app_settings.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -12,11 +13,16 @@ class SagaTaniApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Saga Tani',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const SplashScreen(),
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) => MaterialApp(
+        title: 'Saga Tani',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: AppSettings.instance.themeMode,
+        home: const SplashScreen(),
+      ),
     );
   }
 }

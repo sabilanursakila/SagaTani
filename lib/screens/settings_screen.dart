@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 import '../utils/validators.dart';
 import '../widgets/saga_logo.dart';
+import '../widgets/tr.dart';
 import 'login_screen.dart';
+import '../widgets/tr.dart';
+
 
 class _MenuItem {
   final IconData icon;
@@ -33,9 +37,6 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback? onOpenAccount;
   const SettingsScreen({super.key, this.onOpenAccount});
 
-  static const _pageBg = Color(0xFFF5F7F5);
-  static const _iconBg = Color(0xFFE3F6E4);
-
   // ---------------------------------------------------------------------------
   // Daftar menu
   // ---------------------------------------------------------------------------
@@ -60,7 +61,7 @@ class SettingsScreen extends StatelessWidget {
             scale: 0.8,
             child: Switch(
               value: s.notifications,
-              activeTrackColor: AppColors.primary,
+              activeTrackColor: AppColors.online,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               onChanged: (v) => s.notifications = v,
             ),
@@ -95,8 +96,14 @@ class SettingsScreen extends StatelessWidget {
         _MenuItem(
           icon: Icons.brightness_6_outlined,
           title: 'Tema',
-          value: 'Terang',
-          onTap: () => _showTheme(context),
+          value: s.isDark ? 'Gelap' : 'Terang',
+          onTap: () => _pickOne(
+            context,
+            title: 'Tema',
+            options: const ['Terang', 'Gelap'],
+            selected: s.isDark ? 1 : 0,
+            onSelected: (i) => s.dark = i == 1,
+          ),
         ),
         _MenuItem(
           icon: Icons.info_outline,
@@ -123,13 +130,13 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar dari akun?', style: TextStyle(fontSize: 16)),
-        content: const Text('Kamu perlu masuk lagi untuk memakai aplikasi.',
+        title: const Tr('Keluar dari akun?', style: TextStyle(fontSize: 16)),
+        content: const Tr('Kamu perlu masuk lagi untuk memakai aplikasi.',
             style: TextStyle(fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Batal',
+            child: const Tr('Batal',
                 style: TextStyle(color: AppColors.textMuted)),
           ),
           TextButton(
@@ -141,9 +148,9 @@ class SettingsScreen extends StatelessWidget {
                 (route) => false,
               );
             },
-            child: const Text('Keluar',
+            child: Tr('Keluar',
                 style: TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w700)),
+                    color: ctx.accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -157,7 +164,7 @@ class SettingsScreen extends StatelessWidget {
     );
     if (ok == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kata sandi berhasil diubah')),
+        SnackBar(content: Text(L.t('Kata sandi berhasil diubah'))),
       );
     }
   }
@@ -166,7 +173,7 @@ class SettingsScreen extends StatelessWidget {
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
   );
 
-  Widget _sheetTop(String title) {
+  Widget _sheetTop(BuildContext context, String title) {
     return Column(
       children: [
         const SizedBox(height: 10),
@@ -174,7 +181,7 @@ class SettingsScreen extends StatelessWidget {
           width: 36,
           height: 4,
           decoration: BoxDecoration(
-            color: AppColors.border,
+            color: context.isDark ? AppPalette.darkLine : AppColors.border,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -182,11 +189,11 @@ class SettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text(title,
-                style: const TextStyle(
+            child: Tr(title,
+                style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
+                    color: context.accent)),
           ),
         ),
       ],
@@ -203,16 +210,16 @@ class SettingsScreen extends StatelessWidget {
   }) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardBg,
       shape: _sheetShape,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _sheetTop(title),
+            _sheetTop(ctx, title),
             for (int i = 0; i < options.length; i++)
               ListTile(
-                title: Text(options[i],
+                title: Tr(options[i],
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight:
@@ -232,60 +239,27 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showTheme(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: _sheetShape,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _sheetTop('Tema'),
-            ListTile(
-              leading: const Icon(Icons.light_mode_outlined,
-                  color: AppColors.primary),
-              title: const Text('Terang',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              trailing:
-                  const Icon(Icons.check_circle, color: AppColors.online),
-              onTap: () => Navigator.of(ctx).pop(),
-            ),
-            const ListTile(
-              enabled: false,
-              leading: Icon(Icons.dark_mode_outlined),
-              title: Text('Gelap', style: TextStyle(fontSize: 13)),
-              subtitle: Text('Segera hadir', style: TextStyle(fontSize: 10)),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showAbout(BuildContext context) {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SagaLogo(size: 72),
-            SizedBox(height: 10),
+            const SagaLogo(size: 72),
+            const SizedBox(height: 10),
             Text('Saga Tani',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
-            SizedBox(height: 2),
-            Text('Versi 1.0.0',
+                    color: ctx.accent)),
+            const SizedBox(height: 2),
+            const Tr('Versi 1.0.0',
                 style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-            SizedBox(height: 12),
-            Text(
-              'Aplikasi pemantauan perangkat repelan hama tikus berbasis IoT '
-              'untuk membantu petani menjaga sawah.',
+            const SizedBox(height: 12),
+            const Tr(
+              'Aplikasi pemantauan perangkat repelan hama tikus berbasis IoT untuk membantu petani menjaga sawah.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11),
             ),
@@ -294,9 +268,9 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Tutup',
+            child: Tr('Tutup',
                 style: TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w700)),
+                    color: ctx.accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -307,29 +281,25 @@ class SettingsScreen extends StatelessWidget {
     const faqs = [
       [
         'Bagaimana cara kerja perangkat?',
-        'Sensor mendeteksi pergerakan tikus, lalu perangkat mengeluarkan suara '
-            'pengusir. Semua aktivitas tercatat di Riwayat.'
+        'Sensor mendeteksi pergerakan tikus, lalu perangkat mengeluarkan suara pengusir. Semua aktivitas tercatat di Riwayat.'
       ],
       [
         'Perangkat saya tidak terhubung',
-        'Pastikan perangkat menyala dan berada dalam jangkauan Wi-Fi. Coba '
-            'matikan lalu nyalakan kembali perangkat.'
+        'Pastikan perangkat menyala dan berada dalam jangkauan Wi-Fi. Coba matikan lalu nyalakan kembali perangkat.'
       ],
       [
         'Bagaimana mengganti suara pengusir?',
-        'Buka Beranda, pilih bagian Pemilihan Suara, lalu pilih suara yang '
-            'diinginkan atau Mode Acak.'
+        'Buka Beranda, pilih bagian Pemilihan Suara, lalu pilih suara yang diinginkan atau Mode Acak.'
       ],
       [
         'Apa bedanya mode Otomatis dan Manual?',
-        'Otomatis: perangkat bekerja sendiri saat tikus terdeteksi. Manual: '
-            'kamu yang mengaktifkan pengusir.'
+        'Otomatis: perangkat bekerja sendiri saat tikus terdeteksi. Manual: kamu yang mengaktifkan pengusir.'
       ],
     ];
     final maxH = MediaQuery.of(context).size.height * 0.7;
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardBg,
       isScrollControlled: true,
       shape: _sheetShape,
       builder: (ctx) => SafeArea(
@@ -338,7 +308,7 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _sheetTop('Pusat Bantuan'),
+              _sheetTop(ctx, 'Pusat Bantuan'),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
@@ -348,16 +318,16 @@ class SettingsScreen extends StatelessWidget {
                       ExpansionTile(
                         shape: const Border(),
                         collapsedShape: const Border(),
-                        iconColor: AppColors.primary,
-                        textColor: AppColors.primary,
-                        title: Text(f[0],
+                        iconColor: ctx.accent,
+                        textColor: ctx.accent,
+                        title: Tr(f[0],
                             style: const TextStyle(
                                 fontSize: 12, fontWeight: FontWeight.w600)),
                         childrenPadding:
                             const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         expandedAlignment: Alignment.centerLeft,
                         children: [
-                          Text(f[1],
+                          Tr(f[1],
                               style: const TextStyle(
                                   fontSize: 11, color: AppColors.textMuted)),
                         ],
@@ -378,7 +348,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.pageBg,
       body: AnimatedBuilder(
         animation:
             Listenable.merge([UserSession.instance, AppSettings.instance]),
@@ -387,23 +357,23 @@ class SettingsScreen extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                _header(),
+                _header(context),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _userCard(),
+                      _userCard(context),
                       const SizedBox(height: 22),
                       for (final section in sections) ...[
-                        _sectionLabel(section.label),
-                        _sectionCard(section.items),
+                        _sectionLabel(context, section.label),
+                        _sectionCard(context, section.items),
                         const SizedBox(height: 22),
                       ],
                       _logoutButton(context),
                       const SizedBox(height: 14),
                       const Center(
-                        child: Text('Saga Tani  •  Versi 1.0.0',
+                        child: Tr('Saga Tani  •  Versi 1.0.0',
                             style: TextStyle(
                                 fontSize: 9, color: AppColors.textMuted)),
                       ),
@@ -419,25 +389,29 @@ class SettingsScreen extends StatelessWidget {
   }
 
   /// Header hijau dengan tiga lapisan gelombang (makin ke bawah makin terang).
-  Widget _header() {
+  Widget _header(BuildContext context) {
+    final dark = context.isDark;
     return Stack(
       children: [
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(10, -6, 24, 2),
-            child: const ColoredBox(color: Color(0xFFE9FFEA)),
+            child: ColoredBox(
+                color: dark ? const Color(0xFF14231B) : const Color(0xFFE9FFEA)),
           ),
         ),
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(26, 4, 42, 16),
-            child: const ColoredBox(color: Color(0xFFC9FACB)),
+            child: ColoredBox(
+                color: dark ? const Color(0xFF193024) : const Color(0xFFC9FACB)),
           ),
         ),
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(44, 20, 60, 34),
-            child: const ColoredBox(color: Color(0xFFA6F5A9)),
+            child: ColoredBox(
+                color: dark ? const Color(0xFF1F3D2D) : const Color(0xFFA6F5A9)),
           ),
         ),
         Container(
@@ -448,9 +422,9 @@ class SettingsScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 26, 20, 0),
               child: Row(
-                children: const [
-                  SagaLogo(size: 62),
-                  SizedBox(width: 14),
+                children: [
+                  const SagaLogo(size: 62),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,9 +433,9 @@ class SettingsScreen extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primary)),
-                        SizedBox(height: 2),
-                        Text('Solusi para petani',
+                                color: context.accent)),
+                        const SizedBox(height: 2),
+                        const Tr('Solusi para petani',
                             style: TextStyle(
                                 fontSize: 12, color: AppColors.textMuted)),
                       ],
@@ -477,10 +451,10 @@ class SettingsScreen extends StatelessWidget {
   }
 
   /// Kartu data pengguna: foto, nama, email / no. HP, dan label peran.
-  Widget _userCard() {
+  Widget _userCard(BuildContext context) {
     final u = UserSession.instance;
     return Material(
-      color: Colors.white,
+      color: context.cardBg,
       elevation: 2,
       shadowColor: AppColors.shadow,
       borderRadius: BorderRadius.circular(14),
@@ -507,8 +481,7 @@ class SettingsScreen extends StatelessWidget {
                   Text(u.contact,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.textMuted)),
+                      style: TextStyle(fontSize: 10, color: context.textSub)),
                   const SizedBox(height: 6),
                   Container(
                     padding:
@@ -517,7 +490,7 @@ class SettingsScreen extends StatelessWidget {
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('Pengguna',
+                    child: const Tr('Pengguna',
                         style: TextStyle(color: Colors.white, fontSize: 9)),
                   ),
                 ],
@@ -529,19 +502,19 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionLabel(String text) => Padding(
+  Widget _sectionLabel(BuildContext context, String text) => Padding(
         padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Text(text,
-            style: const TextStyle(
+        child: Tr(text,
+            style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary)),
+                color: context.accent)),
       );
 
-  /// Satu kelompok menu dalam kartu putih, dipisah garis tipis.
-  Widget _sectionCard(List<_MenuItem> items) {
+  /// Satu kelompok menu dalam kartu, dipisah garis tipis.
+  Widget _sectionCard(BuildContext context, List<_MenuItem> items) {
     return Material(
-      color: Colors.white,
+      color: context.cardBg,
       elevation: 2,
       shadowColor: AppColors.shadow,
       borderRadius: BorderRadius.circular(14),
@@ -549,14 +522,14 @@ class SettingsScreen extends StatelessWidget {
       child: Column(
         children: [
           for (int i = 0; i < items.length; i++) ...[
-            _tile(items[i]),
+            _tile(context, items[i]),
             if (i != items.length - 1)
-              const Divider(
+              Divider(
                 height: 1,
                 thickness: 1,
                 indent: 62,
                 endIndent: 14,
-                color: Color(0xFFEEF0EE),
+                color: context.lineColor,
               ),
           ],
         ],
@@ -564,7 +537,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _tile(_MenuItem item) {
+  Widget _tile(BuildContext context, _MenuItem item) {
     return InkWell(
       onTap: item.onTap,
       child: Padding(
@@ -574,15 +547,15 @@ class SettingsScreen extends StatelessWidget {
             Container(
               width: 34,
               height: 34,
-              decoration: const BoxDecoration(
-                color: _iconBg,
+              decoration: BoxDecoration(
+                color: context.softBg,
                 shape: BoxShape.circle,
               ),
-              child: Icon(item.icon, size: 18, color: AppColors.primary),
+              child: Icon(item.icon, size: 18, color: context.accent),
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(item.title,
+              child: Tr(item.title,
                   style: const TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ),
@@ -590,13 +563,12 @@ class SettingsScreen extends StatelessWidget {
               item.trailing!
             else ...[
               if (item.value != null) ...[
-                Text(item.value!,
+                Tr(item.value!,
                     style: const TextStyle(
                         fontSize: 9, color: AppColors.textMuted)),
                 const SizedBox(width: 4),
               ],
-              const Icon(Icons.chevron_right,
-                  size: 18, color: AppColors.textMuted),
+              Icon(Icons.chevron_right, size: 18, color: context.textSub),
             ],
           ],
         ),
@@ -627,7 +599,7 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 Icon(Icons.logout, size: 18, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Keluar',
+                Tr('Keluar',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -676,7 +648,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
           borderSide: BorderSide(color: c, width: w),
         );
     return InputDecoration(
-      labelText: label,
+      labelText: L.t(label),
       labelStyle: const TextStyle(fontSize: 11),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -698,7 +670,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Ubah Kata Sandi', style: TextStyle(fontSize: 16)),
+      title: const Tr('Ubah Kata Sandi', style: TextStyle(fontSize: 16)),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -726,8 +698,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
                 obscureText: _hide,
                 style: const TextStyle(fontSize: 12),
                 decoration: _dec('Konfirmasi sandi baru'),
-                validator: (v) =>
-                    v == _newC.text ? null : 'Konfirmasi sandi tidak sama',
+                validator: (v) => v == _newC.text
+                    ? null
+                    : L.t('Konfirmasi sandi tidak sama'),
               ),
             ],
           ),
@@ -737,13 +710,13 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child:
-              const Text('Batal', style: TextStyle(color: AppColors.textMuted)),
+              const Tr('Batal', style: TextStyle(color: AppColors.textMuted)),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text('Simpan',
+          child: Tr('Simpan',
               style: TextStyle(
-                  color: AppColors.primary, fontWeight: FontWeight.w700)),
+                  color: context.accent, fontWeight: FontWeight.w700)),
         ),
       ],
     );

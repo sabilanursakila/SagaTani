@@ -9,6 +9,7 @@ import '../widgets/saga_logo.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
+import '../widgets/tr.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

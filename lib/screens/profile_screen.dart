@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
-import '../widgets/icon_badge.dart';
+import '../utils/l10n.dart';
+import '../widgets/tr.dart';
+import '../widgets/tr.dart';
 
 /// Tab Akun.
 /// Tampilan awal: Informasi Akun (ringkasan data + satu menu).
@@ -21,7 +23,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   static const _green = Color(0xFF0B5F3F); // tombol
   static const _outline = Color(0xFF1B8F5A); // garis kolom isian
-  static const _pageBg = Color(0xFFF5F7F5);
 
   bool _editing = false;
 
@@ -64,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     setState(() => _editing = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perubahan berhasil disimpan')),
+      SnackBar(content: Text(L.t('Perubahan berhasil disimpan'))),
     );
   }
 
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ---------------------------------------------------------------------------
   Widget _infoView() {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.pageBg,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: UserSession.instance,
@@ -119,43 +120,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text(u.contact,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 10, color: AppColors.textMuted)),
+                        style: TextStyle(fontSize: 10, color: context.textSub)),
                   ),
                   const SizedBox(height: 24),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 4, bottom: 8),
-                    child: Text('Akun',
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Tr('Akun',
                         style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textMuted)),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: context.accent)),
                   ),
                   Material(
-                    color: Colors.white,
+                    color: context.cardBg,
                     elevation: 2,
                     shadowColor: AppColors.shadow,
                     borderRadius: BorderRadius.circular(14),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: _openEdit,
-                      child: const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         child: Row(
                           children: [
-                            IconBadge(
-                                icon: Icons.account_circle_outlined,
-                                radius: 16),
-                            SizedBox(width: 14),
-                            Expanded(
-                              child: Text('Informasi Akun',
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: context.softBg,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.account_circle_outlined,
+                                  size: 18, color: context.accent),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Tr('Informasi Akun',
                                   style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500)),
                             ),
                             Icon(Icons.chevron_right,
-                                size: 18, color: AppColors.textMuted),
+                                size: 18, color: context.textSub),
                           ],
                         ),
                       ),
@@ -178,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _infoRow(String label, String value) {
     return Material(
-      color: Colors.white,
+      color: context.cardBg,
       elevation: 1,
       shadowColor: AppColors.shadow,
       borderRadius: BorderRadius.circular(12),
@@ -187,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           children: [
             Expanded(
-              child: Text(label,
+              child: Tr(label,
                   style: const TextStyle(
                       fontSize: 10, color: AppColors.textMuted)),
             ),
@@ -210,7 +217,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ---------------------------------------------------------------------------
   Widget _editView() {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -263,14 +269,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           InkWell(
             onTap: onBack,
-            child: const Icon(Icons.arrow_back, size: 22, color: Colors.black),
+            child: Icon(Icons.arrow_back, size: 22, color: context.iconColor),
           ),
           const SizedBox(width: 14),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black)),
+          Tr(title,
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -278,11 +282,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(left: 2, bottom: 5),
-        child: Text(text,
-            style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.black)),
+        child: Tr(text,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       );
 
   Widget _field(TextEditingController c, TextInputType type) {
@@ -327,7 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: BorderRadius.circular(8),
           onTap: _save,
           child: const Center(
-            child: Text('Simpan Perubahan',
+            child: Tr('Simpan Perubahan',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,

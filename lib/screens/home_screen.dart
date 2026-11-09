@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
 import 'sound_selection_screen.dart';
+import '../widgets/tr.dart';
+import '../models/app_settings.dart';
+import '../utils/l10n.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenDevice;

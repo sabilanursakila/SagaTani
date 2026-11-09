@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
+import '../widgets/tr.dart';
 
 class _OnboardPage {
   final String image;

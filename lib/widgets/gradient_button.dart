@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'tr.dart';
 
 /// Tombol hijau bergradasi berbentuk pil, gayanya sama dengan tombol
 /// LANJUT di halaman welcome (ukuran lebih kecil).

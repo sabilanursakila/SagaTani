@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-/// Menyimpan pengaturan aplikasi (notifikasi, bahasa, sensitivitas sensor).
+/// Pengaturan aplikasi: tema, bahasa, notifikasi, dan sensitivitas sensor.
 /// Catatan: pilihan hanya tersimpan selama aplikasi terbuka.
 class AppSettings extends ChangeNotifier {
   AppSettings._();
@@ -10,12 +11,16 @@ class AppSettings extends ChangeNotifier {
   static const sensitivityLabels = ['Rendah', 'Sedang', 'Tinggi'];
 
   bool _notifications = true;
-  int _language = 0;
+  int _language = 0; // 0 = Indonesia, 1 = English
   int _sensitivity = 1;
+  bool _dark = false;
 
   bool get notifications => _notifications;
   int get language => _language;
   int get sensitivity => _sensitivity;
+  bool get isDark => _dark;
+  bool get isEnglish => _language == 1;
+  ThemeMode get themeMode => _dark ? ThemeMode.dark : ThemeMode.light;
 
   String get languageLabel => languages[_language];
   String get sensitivityLabel => sensitivityLabels[_sensitivity];
@@ -35,6 +40,12 @@ class AppSettings extends ChangeNotifier {
   set sensitivity(int i) {
     if (_sensitivity == i) return;
     _sensitivity = i;
+    notifyListeners();
+  }
+
+  set dark(bool v) {
+    if (_dark == v) return;
+    _dark = v;
     notifyListeners();
   }
 }
