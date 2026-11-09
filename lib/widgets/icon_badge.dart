@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// Lingkaran berisi ikon (atau gambar, jika file gambarnya ada).
 /// Dipakai di menu Profil, Pengaturan, dan Detail Perangkat.
@@ -16,10 +17,13 @@ class IconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Icon(icon, size: radius * 1.1, color: Colors.black87);
+  final dark = context.isDark;
+   final fallback = Icon(icon,
+       size: radius * 1.1,
+       color: dark ? AppPalette.darkAccent : Colors.black87);
     return CircleAvatar(
       radius: radius,
-      backgroundColor: const Color(0xFFD9D9D9),
+      backgroundColor: dark ? AppPalette.darkSoft : const Color(0xFFD9D9D9),
       child: image == null
           ? fallback
           : ClipOval(

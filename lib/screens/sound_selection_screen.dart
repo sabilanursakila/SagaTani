@@ -25,8 +25,6 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
   final _settings = SoundSettings.instance;
   int? _playing; // suara yang sedang "diputar" untuk pratinjau
 
-  static const _selectedBg = Color(0xFFE8F5E9);
-
   static const _sounds = [
     _Sound('Suara Elang', 'Paling efektif (rekomendasi)', '🦅',
         'assets/images/suara_elang.png'),
@@ -53,7 +51,6 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _settings,
@@ -109,7 +106,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: selected ? _selectedBg : Colors.white,
+        color: selected ? context.softBg : context.cardBg,
         borderRadius: BorderRadius.circular(6),
         elevation: 3,
         shadowColor: AppColors.shadow,
@@ -146,7 +143,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
                         ? Icons.pause_circle_outline
                         : Icons.play_circle_outline,
                     size: 22,
-                    color: AppColors.textDark,
+                    color: context.textMain,
                   ),
                 ),
               ],
@@ -162,7 +159,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: const [
           BoxShadow(
@@ -189,7 +186,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-            color: selected ? AppColors.primary : AppColors.textDark,
+          color: selected ? context.accent : context.textMain,
             width: 1.5),
       ),
       child: selected
@@ -211,7 +208,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
     final on = _settings.isRandom;
     return Material(
       // Putih seperti kartu suara hewan; hijau muda hanya saat dipilih.
-      color: on ? _selectedBg : Colors.white,
+      color: on ? context.softBg : context.cardBg,
       elevation: 3,
       shadowColor: AppColors.shadow,
       shape: RoundedRectangleBorder(
@@ -246,12 +243,12 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
                   ],
                 ),
               ),
-              if (on)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
+                 if (on)
+                 Padding(
+                  padding: const EdgeInsets.only(left: 8),
                   child: Icon(Icons.check_circle,
-                      size: 20, color: AppColors.primary),
-                ),
+                  size: 20, color: context.accent),
+                  ),
             ],
           ),
         ),

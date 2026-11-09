@@ -49,9 +49,9 @@ class DeviceDetailScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              _deviceHeader(),
+              _deviceHeader(context),
               const SizedBox(height: 20),
-              for (final item in _items) _infoCard(item),
+              for (final item in _items) _infoCard(context, item),
             ],
           ),
         ),
@@ -59,11 +59,11 @@ class DeviceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _deviceHeader() {
+  Widget _deviceHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _shadow,
       ),
@@ -105,13 +105,13 @@ class DeviceDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoCard(_InfoItem item) {
+  Widget _infoCard(BuildContext context, _InfoItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _shadow,
       ),

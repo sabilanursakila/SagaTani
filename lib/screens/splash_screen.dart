@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../widgets/saga_logo.dart';
 import 'onboarding_screen.dart';
 import '../widgets/tr.dart';
+import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

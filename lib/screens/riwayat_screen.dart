@@ -6,6 +6,8 @@ import 'package:share_plus/share_plus.dart';
 import '../widgets/tr.dart';
 
 import '../theme/app_theme.dart';
+import '../models/app_settings.dart';
+import '../utils/l10n.dart';
 
 /// Status pengusiran tikus.
 enum RepelStatus {
@@ -132,6 +134,20 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   @override
   void dispose() {
+       void _onSettings() => setState(() {});
+
+   @override
+   void initState() {
+     super.initState();
+     AppSettings.instance.addListener(_onSettings);
+   }
+
+   @override
+   void dispose() {
+     AppSettings.instance.removeListener(_onSettings);
+     _searchCtrl.dispose();
+     super.dispose();
+   }
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -140,7 +156,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   String _two(int n) => n.toString().padLeft(2, '0');
 
-  String _dateText(DateTime t) => '${t.day} ${_months[t.month - 1]} ${t.year}';
+     String _dateText(DateTime t) =>
+       '${t.day} ${L.t(_months[t.month - 1])} ${t.year}';
 
   String _timeText(DateTime t) => '${_two(t.hour)}:${_two(t.minute)}';
 
@@ -154,10 +171,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       final haystack = [
         _dateText(a.time),
         _timeText(a.time),
-        a.location,
-        a.movement,
-        a.sound,
-        a.status.label,
+           L.t(a.location),
+           L.t(a.movement),
+           L.t(a.sound),
+           L.t(a.status.label),
       ].join(' ').toLowerCase();
       return haystack.contains(q);
     }).toList();
@@ -169,15 +186,15 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   String _buildCsv(List<RatActivity> rows) {
     final b = StringBuffer();
-    b.writeln('Tanggal,Waktu,Lokasi,Pergerakan,Suara,Status Pengusiran');
+    b.writeln(L.t('Tanggal,Waktu,Lokasi,Pergerakan,Suara,Status Pengusiran'));
     for (final a in rows) {
       b.writeln([
         _csvCell(_dateText(a.time)),
         _csvCell(_timeText(a.time)),
-        _csvCell(a.location),
-        _csvCell(a.movement),
-        _csvCell(a.sound),
-        _csvCell(a.status.label),
+        _csvCell(L.t(a.location)),
+        _csvCell(L.t(a.movement)),
+        _csvCell(L.t(a.sound)),
+        _csvCell(L.t(a.status.label)),
       ].join(','));
     }
     return b.toString();
@@ -192,7 +209,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
   Future<void> _download() async {
     final rows = _filtered;
     if (rows.isEmpty) {
-      _snack('Tidak ada data untuk diunduh.');
+      _snack(L.t('Tidak ada data untuk diunduh.'));
       return;
     }
     try {
@@ -205,10 +222,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       await file.writeAsString('\uFEFF${_buildCsv(rows)}');
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'Dataset riwayat aktivitas tikus',
+        subject: L.t('Dataset riwayat aktivitas tikus'),
       );
     } catch (e) {
-      _snack('Gagal menyiapkan file: $e');
+      _snack('${L.t('Gagal menyiapkan file')}: $e');
     }
   }
 
@@ -232,7 +249,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('${rows.length} aktivitas ditemukan',
+              child: Text('${rows.length} ${L.t('aktivitas ditemukan')}',
                   style: const TextStyle(
                       fontSize: 10, color: AppColors.textMuted)),
             ),
@@ -263,7 +280,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(10, -6, 24, 2),
-            child: const ColoredBox(color: Color(0xFFE9FFEA)),
+            child:ColoredBox(
+            color: context.isDark
+             ? const Color(0xFF193024)
+             : const Color(0xFFC9FACB)),
           ),
         ),
         Positioned.fill(
@@ -275,7 +295,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(34, 16, 46, 24),
-            child: const ColoredBox(color: Color(0xFFA6F5A9)),
+            child: ColoredBox(
+            color: context.isDark
+             ? const Color(0xFF1F3D2D)
+             : const Color(0xFFA6F5A9)),
           ),
         ),
         Container(
@@ -311,7 +334,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       children: [
         Expanded(
           child: Material(
-            color: Colors.white,
+          color: context.cardBg,
             elevation: 2,
             shadowColor: AppColors.shadow,
             borderRadius: BorderRadius.circular(12),
@@ -320,7 +343,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
               style: const TextStyle(fontSize: 12),
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: 'Cari tanggal, lokasi, suara, status...',
+                hintText: L.t('Cari tanggal, lokasi, suara, status...'),
                 hintStyle: const TextStyle(
                     fontSize: 11, color: AppColors.textMuted),
                 prefixIcon: const Icon(Icons.search,
@@ -343,7 +366,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         ),
         const SizedBox(width: 10),
         Tooltip(
-          message: 'Unduh dataset (CSV)',
+          message: L.t('Unduh dataset (CSV)'),
           child: Material(
             color: AppColors.primary,
             elevation: 2,
@@ -378,7 +401,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
           selected: selected,
           showCheckmark: false,
           selectedColor: AppColors.primary,
-          backgroundColor: Colors.white,
+          backgroundColor: context.cardBg,
           side: BorderSide.none,
           onSelected: (_) => setState(() => _statusFilter = value),
         ),
@@ -400,7 +423,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   Widget _activityCard(RatActivity a) {
     return Material(
-      color: Colors.white,
+      color: context.cardBg,
       elevation: 2,
       shadowColor: AppColors.shadow,
       borderRadius: BorderRadius.circular(14),
@@ -454,10 +477,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                         fontSize: 10, color: AppColors.textMuted)),
               ],
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Divider(height: 1, color: Color(0xFFEEF0EE)),
-            ),
+                  Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Divider(height: 1, color: context.lineColor),
+               ),
             _infoRow(Icons.directions_run, 'Pergerakan', a.movement),
             const SizedBox(height: 8),
             _infoRow(Icons.volume_up_outlined, 'Suara keluar', a.sound),

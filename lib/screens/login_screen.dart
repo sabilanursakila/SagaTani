@@ -10,6 +10,8 @@ import 'main_shell.dart';
 import 'onboarding_screen.dart';
 import 'register_screen.dart';
 import '../widgets/tr.dart';
+import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

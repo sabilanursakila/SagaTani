@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _header() {
     return AnimatedBuilder(
-      animation: UserSession.instance,
+      animation: Listenable.merge([UserSession.instance, AppSettings.instance]),
       builder: (context, _) {
         final user = UserSession.instance;
         return Row(
@@ -150,11 +150,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _cardShadow,
       ),
-      child: const IntrinsicHeight(
+      child: IntrinsicHeight(
         child: Row(
           children: [
             Expanded(
@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: 'Aktif',
                   active: true),
             ),
-            VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE6E6E6)),
+            VerticalDivider(width: 1, thickness: 1, color: context.lineColor),
             Expanded(
               child: _StatusItem(
                   icon: Icons.volume_up_outlined,
@@ -195,15 +195,13 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 58,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primary : Colors.white,
+              color: selected ? AppColors.primary : context.cardBg,
               borderRadius: BorderRadius.circular(6),
               boxShadow: _cardShadow,
             ),
             child: Row(
               children: [
-                Icon(icon,
-                    size: 20, color: selected ? Colors.white : Colors.black),
-                const SizedBox(width: 14),
+                Icon(icon,size: 20, color: selected ? Colors.white : context.iconColor),                const SizedBox(width: 14),
                 Text(label,
                     style: TextStyle(
                         fontSize: 10,
@@ -227,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _soundPicker() {
     return Material(
-      color: Colors.white,
+      color: context.cardBg,
       borderRadius: BorderRadius.circular(6),
       elevation: 3,
       shadowColor: AppColors.shadow,
@@ -262,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 110,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white,
+       color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _cardShadow,
       ),
