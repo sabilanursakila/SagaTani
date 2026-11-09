@@ -29,7 +29,7 @@ class _MainShellState extends State<MainShell> {
           HomeScreen(onOpenDevice: () => _go(1)),
           DeviceDetailScreen(onBack: () => _go(0)),
           ProfileScreen(onBack: () => _go(0)),
-          const SettingsScreen(),
+          SettingsScreen(onOpenAccount: () => _go(2)),
         ],
       ),
       bottomNavigationBar: AppBottomNav(currentIndex: _index, onTap: _go),
