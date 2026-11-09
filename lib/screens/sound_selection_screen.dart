@@ -4,6 +4,8 @@ import '../models/sound_settings.dart';
 import '../theme/app_theme.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/tr.dart';
+import '../utils/l10n.dart';
+
 
 class _Sound {
   final String name;
