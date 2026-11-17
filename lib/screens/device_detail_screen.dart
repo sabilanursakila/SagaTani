@@ -43,7 +43,7 @@ class DeviceDetailScreen extends StatelessWidget {
                     onPressed: onBack,
                     icon: const Icon(Icons.arrow_back),
                   ),
-                  const Text('Detail Perangkat',
+                  const Tr('Detail Perangkat',
                       style:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
@@ -83,7 +83,7 @@ class DeviceDetailScreen extends StatelessWidget {
           const Expanded(
             child: Column(
               children: [
-                Text('R-001',
+                Tr('R-001',
                     style:
                         TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                 SizedBox(height: 4),
@@ -92,7 +92,7 @@ class DeviceDetailScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.circle, size: 6, color: AppColors.online),
                     SizedBox(width: 4),
-                    Text('Online',
+                    Tr('Online',
                         style:
                             TextStyle(fontSize: 9, color: AppColors.online)),
                   ],
@@ -123,11 +123,11 @@ class DeviceDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.title,
+                Tr(item.title,
                     style: const TextStyle(
                         fontSize: 10, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 3),
-                Text(item.value,
+                Tr(item.value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

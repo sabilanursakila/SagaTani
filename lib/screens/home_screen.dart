@@ -61,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
       animation: Listenable.merge([UserSession.instance, AppSettings.instance]),
       builder: (context, _) {
         final user = UserSession.instance;
+        final dark = Theme.of(context).brightness == Brightness.dark;
+        const greetStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.w600);
         return Row(
           children: [
             const CircleAvatar(
@@ -73,13 +75,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Halo, ${user.name}',
+                  Text('${L.t('Halo')}, ${user.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600)),
+                      style:
+                          dark ? AppPalette.adaptTextStyle(greetStyle) : greetStyle),
                   const SizedBox(height: 2),
-                  const Text('Petani Sawah Sejahtera',
+                  const Tr('Petani Sawah Sejahtera',
                       style:
                           TextStyle(fontSize: 9, color: AppColors.textMuted)),
                 ],
@@ -110,12 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Perangkat Aktif',
+                Tr('Perangkat Aktif',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.w600)),
-                Text('R-001',
+                Tr('R-001',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 11,
@@ -125,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Icon(Icons.circle, size: 6, color: Color(0xFF4CD964)),
                     SizedBox(width: 4),
-                    Text('Online',
+                    Tr('Online',
                         style:
                             TextStyle(color: Color(0xFF4CD964), fontSize: 9)),
                   ],
@@ -141,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _sectionTitle(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text,
+        child: Tr(text,
             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       );
 
@@ -157,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            Expanded(
+            const Expanded(
               child: _StatusItem(
                   icon: Icons.sensors,
                   label: 'Sensor',
@@ -165,14 +167,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   active: true),
             ),
             VerticalDivider(width: 1, thickness: 1, color: context.lineColor),
-            Expanded(
+            const Expanded(
               child: _StatusItem(
                   icon: Icons.volume_up_outlined,
                   label: 'Suara',
                   value: 'Berjalan'),
             ),
-            VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE6E6E6)),
-            Expanded(
+            VerticalDivider(width: 1, thickness: 1, color: context.lineColor),
+            const Expanded(
               child: _StatusItem(
                   icon: Icons.phonelink_ring,
                   label: 'Status',
@@ -201,8 +203,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                Icon(icon,size: 20, color: selected ? Colors.white : context.iconColor),                const SizedBox(width: 14),
-                Text(label,
+                Icon(icon,
+                    size: 20,
+                    color: selected ? Colors.white : context.iconColor),
+                const SizedBox(width: 14),
+                Tr(label,
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -241,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(Icons.volume_up_outlined, size: 20),
               SizedBox(width: 14),
               Expanded(
-                child: Text('Daftar Suara',
+                child: Tr('Daftar Suara',
                     style:
                         TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
               ),
@@ -260,11 +265,11 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 110,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-       color: context.cardBg,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(6),
         boxShadow: _cardShadow,
       ),
-      child: const Text('Belum ada aktivitas',
+      child: const Tr('Belum ada aktivitas',
           style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
     );
   }
@@ -290,9 +295,9 @@ class _StatusItem extends StatelessWidget {
       children: [
         Icon(icon, size: 26),
         const SizedBox(height: 4),
-        Text(label,
+        Tr(label,
             style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600)),
-        Text(value,
+        Tr(value,
             style: TextStyle(
                 fontSize: 8,
                 color: active ? AppColors.online : AppColors.textDark)),

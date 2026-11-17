@@ -3,13 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
+import '../models/app_settings.dart';
+import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 import '../widgets/tr.dart';
 
-import '../theme/app_theme.dart';
-import '../models/app_settings.dart';
-import '../utils/l10n.dart';
-
-/// Status pengusiran tikus.
+/// Status pengusiran tikus. Label ditulis Bahasa Indonesia,
+/// diterjemahkan saat ditampilkan lewat L.t().
 enum RepelStatus {
   berhasil('Berhasil diusir', Color(0xFF2E7D32), Color(0xFFE3F6E4)),
   proses('Sedang diusir', Color(0xFFB26A00), Color(0xFFFFF1D6)),
@@ -45,8 +46,6 @@ class RiwayatScreen extends StatefulWidget {
 }
 
 class _RiwayatScreenState extends State<RiwayatScreen> {
-  static const _pageBg = Color(0xFFF5F7F5);
-
   // TODO: ganti dengan data asli dari sensor / database.
   static final List<RatActivity> _data = [
     RatActivity(
@@ -134,20 +133,6 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   @override
   void dispose() {
-       void _onSettings() => setState(() {});
-
-   @override
-   void initState() {
-     super.initState();
-     AppSettings.instance.addListener(_onSettings);
-   }
-
-   @override
-   void dispose() {
-     AppSettings.instance.removeListener(_onSettings);
-     _searchCtrl.dispose();
-     super.dispose();
-   }
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -156,8 +141,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   String _two(int n) => n.toString().padLeft(2, '0');
 
-     String _dateText(DateTime t) =>
-       '${t.day} ${L.t(_months[t.month - 1])} ${t.year}';
+  String _dateText(DateTime t) =>
+      '${t.day} ${L.t(_months[t.month - 1])} ${t.year}';
 
   String _timeText(DateTime t) => '${_two(t.hour)}:${_two(t.minute)}';
 
@@ -168,13 +153,14 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
     return _data.where((a) {
       if (_statusFilter != null && a.status != _statusFilter) return false;
       if (q.isEmpty) return true;
+      // Dicari pada teks yang sedang tampil (sesuai bahasa terpilih).
       final haystack = [
         _dateText(a.time),
         _timeText(a.time),
-           L.t(a.location),
-           L.t(a.movement),
-           L.t(a.sound),
-           L.t(a.status.label),
+        L.t(a.location),
+        L.t(a.movement),
+        L.t(a.sound),
+        L.t(a.status.label),
       ].join(' ').toLowerCase();
       return haystack.contains(q);
     }).toList();
@@ -225,6 +211,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         subject: L.t('Dataset riwayat aktivitas tikus'),
       );
     } catch (e) {
+      if (!mounted) return;
       _snack('${L.t('Gagal menyiapkan file')}: $e');
     }
   }
@@ -233,43 +220,49 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rows = _filtered;
-    return Scaffold(
-      backgroundColor: _pageBg,
-      body: Column(
-        children: [
-          _header(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: _searchRow(),
+    // Dibangun ulang otomatis saat bahasa / tema diganti.
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) {
+        final rows = _filtered;
+        return Scaffold(
+          body: Column(
+            children: [
+              _header(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: _searchRow(),
+              ),
+              const SizedBox(height: 10),
+              _filterChips(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                      '${rows.length} ${L.t('aktivitas ditemukan')}',
+                      style: const TextStyle(
+                          fontSize: 10, color: AppColors.textMuted)),
+                ),
+              ),
+              Expanded(
+                child: rows.isEmpty
+                    ? const Center(
+                        child: Tr('Tidak ada riwayat yang cocok.',
+                            style: TextStyle(
+                                fontSize: 12, color: AppColors.textMuted)),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                        itemCount: rows.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (_, i) => _activityCard(rows[i]),
+                      ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          _filterChips(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('${rows.length} ${L.t('aktivitas ditemukan')}',
-                  style: const TextStyle(
-                      fontSize: 10, color: AppColors.textMuted)),
-            ),
-          ),
-          Expanded(
-            child: rows.isEmpty
-                ? const Center(
-                    child: Text('Tidak ada riwayat yang cocok.',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textMuted)),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                    itemCount: rows.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _activityCard(rows[i]),
-                  ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -280,10 +273,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(10, -6, 24, 2),
-            child:ColoredBox(
-            color: context.isDark
-             ? const Color(0xFF193024)
-             : const Color(0xFFC9FACB)),
+            child: const ColoredBox(color: Color(0xFFE9FFEA)),
           ),
         ),
         Positioned.fill(
@@ -295,10 +285,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(34, 16, 46, 24),
-            child: ColoredBox(
-            color: context.isDark
-             ? const Color(0xFF1F3D2D)
-             : const Color(0xFFA6F5A9)),
+            child: const ColoredBox(color: Color(0xFFA6F5A9)),
           ),
         ),
         Container(
@@ -306,19 +293,20 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
           padding: const EdgeInsets.only(bottom: 44),
           child: SafeArea(
             bottom: false,
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(20, 22, 20, 0),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Riwayat',
-                      style: TextStyle(
+                  // Warna tetap gelap karena latar header hijau muda.
+                  Text(L.t('Riwayat'),
+                      style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textDark)),
-                  SizedBox(height: 2),
-                  Text('Aktivitas tikus yang terdeteksi',
-                      style: TextStyle(
+                  const SizedBox(height: 2),
+                  Text(L.t('Aktivitas tikus yang terdeteksi'),
+                      style: const TextStyle(
                           fontSize: 12, color: AppColors.textMuted)),
                 ],
               ),
@@ -334,7 +322,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       children: [
         Expanded(
           child: Material(
-          color: context.cardBg,
+            color: context.cardBg,
             elevation: 2,
             shadowColor: AppColors.shadow,
             borderRadius: BorderRadius.circular(12),
@@ -394,10 +382,9 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       return Padding(
         padding: const EdgeInsets.only(right: 8),
         child: ChoiceChip(
-          label: Text(label,
+          label: Text(L.t(label),
               style: TextStyle(
-                  fontSize: 10,
-                  color: selected ? Colors.white : AppColors.textDark)),
+                  fontSize: 10, color: selected ? Colors.white : null)),
           selected: selected,
           showCheckmark: false,
           selectedColor: AppColors.primary,
@@ -438,7 +425,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     size: 16, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(a.location,
+                  child: Tr(a.location,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -451,7 +438,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     color: a.status.bg,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(a.status.label,
+                  child: Text(L.t(a.status.label),
                       style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w600,
@@ -477,10 +464,10 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                         fontSize: 10, color: AppColors.textMuted)),
               ],
             ),
-                  Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Divider(height: 1, color: context.lineColor),
-               ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Divider(height: 1, color: context.lineColor),
+            ),
             _infoRow(Icons.directions_run, 'Pergerakan', a.movement),
             const SizedBox(height: 8),
             _infoRow(Icons.volume_up_outlined, 'Suara keluar', a.sound),
@@ -500,11 +487,11 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
+              Tr(label,
                   style: const TextStyle(
                       fontSize: 9, color: AppColors.textMuted)),
               const SizedBox(height: 1),
-              Text(value,
+              Tr(value,
                   style: const TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w500)),
             ],

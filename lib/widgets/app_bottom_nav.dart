@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/app_settings.dart';
 import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 
 class _NavItem {
   final IconData icon;
@@ -29,59 +31,67 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Container(
-          height: 74,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(34),
-            boxShadow: const [
-              BoxShadow(
-                  color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
-            ],
-          ),
-          child: Row(
-            children: List.generate(_items.length, (i) {
-              final item = _items[i];
-              final selected = currentIndex == i;
-              return Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color:
-                              selected ? AppColors.online : Colors.transparent,
+    // Dibangun ulang otomatis saat bahasa diganti.
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            height: 74,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(34),
+              boxShadow: const [
+                BoxShadow(
+                    color: AppColors.shadow,
+                    blurRadius: 8,
+                    offset: Offset(0, 3)),
+              ],
+            ),
+            child: Row(
+              children: List.generate(_items.length, (i) {
+                final item = _items[i];
+                final selected = currentIndex == i;
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onTap(i),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: selected
+                                ? AppColors.online
+                                : Colors.transparent,
+                          ),
+                          child: Icon(item.icon,
+                              size: 24,
+                              color: selected ? Colors.white : Colors.black),
                         ),
-                        child: Icon(item.icon,
-                            size: 24,
-                            color: selected ? Colors.white : Colors.black),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w500,
-                          color: selected ? AppColors.online : Colors.black87,
+                        const SizedBox(height: 2),
+                        Text(
+                          L.t(item.label),
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
+                            color:
+                                selected ? AppColors.online : Colors.black87,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
       ),
