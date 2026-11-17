@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
+import '../utils/l10n.dart';
 import '../utils/validators.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/saga_logo.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
-import '../widgets/tr.dart';
-import '../theme/app_theme.dart';
-import '../utils/l10n.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -42,6 +41,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _confirmCtrl.dispose();
     super.dispose();
   }
+
+  /// Menerjemahkan pesan error dari Validators sesuai bahasa terpilih.
+  String? _tr(String? message) => message == null ? null : L.t(message);
 
   void _register() {
     // Berhenti di sini jika ada isian yang belum valid (pesan error tampil).
@@ -89,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return InputDecoration(
       fillColor: Colors.white,
       filled: true,
-      hintText: hint,
+      hintText: L.t(hint),
       hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
       prefixIcon: Icon(icon, size: 20, color: AppColors.textDark),
       suffixIcon: suffix,
@@ -167,9 +169,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SagaLogo(size: 72),
                     const SizedBox(height: 6),
-                    const Text(
-                      'SAGA TANI',
-                      style: TextStyle(
+                    Text(
+                      L.t('SAGA TANI'),
+                      style: const TextStyle(
                         color: AppColors.primary,
                         fontSize: 28,
                         fontWeight: FontWeight.w600,
@@ -177,9 +179,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      'Masa Depan Pertanian, Bersama',
-                      style: TextStyle(
+                    Text(
+                      L.t('Masa Depan Pertanian, Bersama'),
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w500,
@@ -197,157 +199,165 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      // Ikon status bar (jam, baterai) putih agar terbaca di atas hijau tua
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            // Hiasan rumput di bawah (assets/images/grass.png, opsional)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Image.asset(
-                'assets/images/grass.png',
-                width: double.infinity,
-                fit: BoxFit.fitWidth,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+    // Dibangun ulang otomatis saat bahasa diganti.
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) => AnnotatedRegion<SystemUiOverlayStyle>(
+        // Ikon status bar (jam, baterai) putih agar terbaca di atas hijau tua
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              // Hiasan rumput di bawah (assets/images/grass.png, opsional)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(
+                  'assets/images/grass.png',
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
               ),
-            ),
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  _header(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Form(
-                      key: _formKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Daftar Akun',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Bergabunglah dengan SAGA TANI untuk\nmengelola pertanian Anda dengan lebih mudah.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              height: 1.4,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _nameCtrl,
-                            textCapitalization: TextCapitalization.words,
-                            textInputAction: TextInputAction.next,
-                            validator: Validators.name,
-                            style: const TextStyle(fontSize: 12),
-                            decoration: _decoration(
-                                'Nama Lengkap', Icons.person_outline),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _contactCtrl,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            validator: (v) =>
-                                Validators.emailOrPhone(v) ??
-                                (UserSession.instance.isRegistered(v ?? '')
-                                    ? 'Akun ini sudah terdaftar, silakan masuk'
-                                    : null),
-                            style: const TextStyle(fontSize: 12),
-                            decoration: _decoration('No. HP atau Email',
-                                Icons.smartphone_outlined),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _passCtrl,
-                            obscureText: _obscure,
-                            textInputAction: TextInputAction.next,
-                            validator: Validators.newPassword,
-                            style: const TextStyle(fontSize: 12),
-                            decoration: _decoration(
-                              'Sandi',
-                              Icons.lock_outline,
-                              suffix: _visibilityToggle(_obscure,
-                                  () => setState(() => _obscure = !_obscure)),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _confirmCtrl,
-                            obscureText: _obscureConfirm,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _register(),
-                            validator: (v) =>
-                                Validators.confirm(v, _passCtrl.text),
-                            style: const TextStyle(fontSize: 12),
-                            decoration: _decoration(
-                              'Ulangi Sandi',
-                              Icons.lock_outline,
-                              suffix: _visibilityToggle(
-                                  _obscureConfirm,
-                                  () => setState(() =>
-                                      _obscureConfirm = !_obscureConfirm)),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          GradientButton(
-                            label: 'Daftar',
-                            onPressed: _register,
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: const [
-                              Expanded(
-                                  child: Divider(color: AppColors.border)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text('atau',
-                                    style: TextStyle(fontSize: 11)),
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _header(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Form(
+                        key: _formKey,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: Column(
+                          children: [
+                            Text(
+                              L.t('Daftar Akun'),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
                               ),
-                              Expanded(
-                                  child: Divider(color: AppColors.border)),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Sudah punya akun? ',
-                                  style: TextStyle(
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              L.t('Bergabunglah dengan SAGA TANI untuk\nmengelola pertanian Anda dengan lebih mudah.'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _nameCtrl,
+                              textCapitalization: TextCapitalization.words,
+                              textInputAction: TextInputAction.next,
+                              validator: (v) => _tr(Validators.name(v)),
+                              style: const TextStyle(fontSize: 12),
+                              decoration: _decoration(
+                                  'Nama Lengkap', Icons.person_outline),
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _contactCtrl,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: (v) =>
+                                  _tr(Validators.emailOrPhone(v)) ??
+                                  (UserSession.instance.isRegistered(v ?? '')
+                                      ? L.t(
+                                          'Akun ini sudah terdaftar, silakan masuk')
+                                      : null),
+                              style: const TextStyle(fontSize: 12),
+                              decoration: _decoration('No. HP atau Email',
+                                  Icons.smartphone_outlined),
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _passCtrl,
+                              obscureText: _obscure,
+                              textInputAction: TextInputAction.next,
+                              validator: (v) => _tr(Validators.newPassword(v)),
+                              style: const TextStyle(fontSize: 12),
+                              decoration: _decoration(
+                                'Sandi',
+                                Icons.lock_outline,
+                                suffix: _visibilityToggle(
+                                    _obscure,
+                                    () => setState(
+                                        () => _obscure = !_obscure)),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _confirmCtrl,
+                              obscureText: _obscureConfirm,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _register(),
+                              validator: (v) => _tr(
+                                  Validators.confirm(v, _passCtrl.text)),
+                              style: const TextStyle(fontSize: 12),
+                              decoration: _decoration(
+                                'Ulangi Sandi',
+                                Icons.lock_outline,
+                                suffix: _visibilityToggle(
+                                    _obscureConfirm,
+                                    () => setState(() =>
+                                        _obscureConfirm = !_obscureConfirm)),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            GradientButton(
+                              label: L.t('Daftar'),
+                              onPressed: _register,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Expanded(
+                                    child: Divider(color: AppColors.border)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Text(L.t('atau'),
+                                      style: const TextStyle(fontSize: 11)),
+                                ),
+                                const Expanded(
+                                    child: Divider(color: AppColors.border)),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(L.t('Sudah punya akun? '),
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textMuted)),
+                                GestureDetector(
+                                  onTap: _goToLogin,
+                                  child: Text(
+                                    L.t('Masuk di sini'),
+                                    style: const TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textMuted)),
-                              GestureDetector(
-                                onTap: _goToLogin,
-                                child: const Text(
-                                  'Masuk di sini',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.link,
-                                    fontWeight: FontWeight.w600,
+                                      color: AppColors.link,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 60),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(height: 60),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

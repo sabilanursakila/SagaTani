@@ -17,10 +17,47 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _mode = 1; // 0 = Otomatis, 1 = Manual
+  DateTime? _manualTime; // jadwal yang diatur lewat pop up Manual
 
   static const _cardShadow = [
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
   ];
+
+  static const _daysId = [
+    'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu',
+  ];
+  static const _daysEn = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+    'Sunday',
+  ];
+  static const _monthsId = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  static const _monthsEn = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  // ---------- Bantuan teks & format ----------
+
+  /// Teks dua bahasa langsung di tempat.
+  String _t(String id, String en) => AppSettings.instance.isEnglish ? en : id;
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  String _dayName(DateTime d) => AppSettings.instance.isEnglish
+      ? _daysEn[d.weekday - 1]
+      : _daysId[d.weekday - 1];
+
+  String _monthName(DateTime d) => AppSettings.instance.isEnglish
+      ? _monthsEn[d.month - 1]
+      : _monthsId[d.month - 1];
+
+  String _timeText(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
+
+  String _fullText(DateTime d) =>
+      '${_dayName(d)}, ${d.day} ${_monthName(d)} ${d.year} • ${_timeText(d)}';
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
               _sectionTitle('Mode Operasi'),
               _modeSelector(),
+              _manualSummary(),
               const SizedBox(height: 16),
               _sectionTitle('Pemilihan Suara'),
               _soundPicker(),
@@ -187,12 +225,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Dua kartu lebar: Otomatis dan Manual.
+  /// Menekan Manual membuka pop up pengaturan jadwal.
   Widget _modeSelector() {
     Widget item(int index, IconData icon, String label) {
       final selected = _mode == index;
       return Expanded(
         child: GestureDetector(
-          onTap: () => setState(() => _mode = index),
+          onTap: () {
+            if (index == 1) {
+              _openManualDialog();
+            } else {
+              setState(() => _mode = index);
+            }
+          },
           child: Container(
             height: 58,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -225,6 +270,217 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 14),
         item(1, Icons.smartphone, 'Manual'),
       ],
+    );
+  }
+
+  /// Ringkasan jadwal manual di bawah pilihan mode (ketuk untuk mengubah).
+  Widget _manualSummary() {
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) {
+        final t = _manualTime;
+        if (_mode != 1 || t == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Material(
+            color: context.cardBg,
+            elevation: 2,
+            shadowColor: AppColors.shadow,
+            borderRadius: BorderRadius.circular(6),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(6),
+              onTap: _openManualDialog,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.schedule,
+                        size: 18, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_t('Jadwal manual', 'Manual schedule'),
+                              style: const TextStyle(
+                                  fontSize: 9, color: AppColors.textMuted)),
+                          const SizedBox(height: 2),
+                          Text(_fullText(t),
+                              style: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.edit_outlined,
+                        size: 16, color: AppColors.textMuted),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ---------- Pop up jadwal manual ----------
+
+  Future<void> _openManualDialog() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initial = _manualTime ?? now.add(const Duration(minutes: 5));
+    var date = DateTime(initial.year, initial.month, initial.day);
+    var time = TimeOfDay.fromDateTime(initial);
+
+    final result = await showDialog<DateTime>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final chosen = DateTime(
+              date.year, date.month, date.day, time.hour, time.minute);
+          final isPast = chosen.isBefore(DateTime.now());
+
+          Future<void> pickDate() async {
+            final picked = await showDatePicker(
+              context: ctx,
+              initialDate: date.isBefore(today) ? today : date,
+              firstDate: today,
+              lastDate: today.add(const Duration(days: 365)),
+            );
+            if (picked != null) setLocal(() => date = picked);
+          }
+
+          Future<void> pickTime() async {
+            final picked =
+                await showTimePicker(context: ctx, initialTime: time);
+            if (picked != null) setLocal(() => time = picked);
+          }
+
+          return AlertDialog(
+            title: Text(_t('Atur Jadwal Manual', 'Set Manual Schedule'),
+                style: const TextStyle(fontSize: 16)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _pickerTile(
+                    Icons.calendar_today_outlined,
+                    _t('Tanggal', 'Date'),
+                    '${date.day} ${_monthName(date)} ${date.year}',
+                    pickDate,
+                  ),
+                  const SizedBox(height: 10),
+                  _pickerTile(
+                    Icons.access_time,
+                    _t('Jam', 'Time'),
+                    '${_two(time.hour)}:${_two(time.minute)}',
+                    pickTime,
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _cell(_t('Hari', 'Day'), _dayName(date)),
+                      _cell(_t('Tgl', 'Date'), '${date.day}'),
+                      _cell(_t('Bulan', 'Month'), _monthName(date)),
+                      _cell(_t('Jam', 'Time'),
+                          '${_two(time.hour)}:${_two(time.minute)}'),
+                    ],
+                  ),
+                  if (isPast) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _t('Waktu sudah lewat, pilih waktu yang akan datang.',
+                          'That time has passed, choose a future time.'),
+                      style: const TextStyle(
+                          fontSize: 10, color: Color(0xFFC62828)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(_t('Batal', 'Cancel')),
+              ),
+              TextButton(
+                onPressed:
+                    isPast ? null : () => Navigator.of(ctx).pop(chosen),
+                child: Text(_t('Simpan', 'Save'),
+                    style: TextStyle(
+                        color: isPast ? null : AppColors.primary)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _mode = 1;
+        _manualTime = result;
+        // TODO: kirim jadwal manual (_manualTime) ke perangkat.
+      });
+    }
+  }
+
+  /// Baris yang bisa diketuk untuk membuka pemilih tanggal / jam.
+  Widget _pickerTile(
+      IconData icon, String label, String value, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 9, color: AppColors.textMuted)),
+                  const SizedBox(height: 1),
+                  Text(value,
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 18, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Satu kolom ringkasan (Hari / Tgl / Bulan / Jam) di dalam pop up.
+  Widget _cell(String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(label,
+              style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
+          const SizedBox(height: 2),
+          Text(value,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+        ],
+      ),
     );
   }
 

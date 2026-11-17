@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
-import '../widgets/tr.dart';   
+import '../models/app_settings.dart';
 import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
-
+import 'login_screen.dart';
+import 'register_screen.dart';
 
 class _OnboardPage {
   final String image;
@@ -83,41 +81,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 48,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: _isLast
-                    ? null
-                    : TextButton(
-                        onPressed: _goLogin,
-                        child: const Text('Lewati',
-                            style: TextStyle(
-                                color: Color(0xFF3E7D4F), fontSize: 13)),
-                      ),
+    // Dibangun ulang otomatis saat bahasa diganti.
+    return AnimatedBuilder(
+      animation: AppSettings.instance,
+      builder: (context, _) => Scaffold(
+        backgroundColor: _bg,
+        body: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 48,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _isLast
+                      ? null
+                      : TextButton(
+                          onPressed: _goLogin,
+                          child: Text(L.t('Lewati'),
+                              style: const TextStyle(
+                                  color: Color(0xFF3E7D4F), fontSize: 13)),
+                        ),
+                ),
               ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: _pages.length,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (_, i) => _pageContent(_pages[i]),
+              Expanded(
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: _pages.length,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemBuilder: (_, i) => _pageContent(_pages[i]),
+                ),
               ),
-            ),
-            _dots(),
-            const SizedBox(height: 28),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: _isLast ? _lastButtons() : _nextButton(),
-            ),
-            const SizedBox(height: 32),
-          ],
+              _dots(),
+              const SizedBox(height: 28),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: _isLast ? _lastButtons() : _nextButton(),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -148,7 +150,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            p.title,
+            L.t(p.title),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 24,
@@ -159,7 +161,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            p.description,
+            L.t(p.description),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -212,10 +214,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: InkWell(
             borderRadius: BorderRadius.circular(25),
             onTap: _next,
-            child: const Center(
+            child: Center(
               child: Text(
-                'LANJUT',
-                style: TextStyle(
+                L.t('LANJUT'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -243,8 +245,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
             ),
-            child: const Text('Daftar Akun Baru',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            child: Text(L.t('Daftar Akun Baru'),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700)),
           ),
         ),
         const SizedBox(height: 12),
@@ -260,8 +263,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
             ),
-            child: const Text('Masuk',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            child: Text(L.t('Masuk'),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700)),
           ),
         ),
       ],
