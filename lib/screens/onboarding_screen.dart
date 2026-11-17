@@ -54,6 +54,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   bool get _isLast => _page == _pages.length - 1;
 
+  // ---------- Warna yang mengikuti tema aplikasi (terang / gelap) ----------
+  bool get _isDark => context.isDark;
+  Color get _pageBg => _isDark ? AppPalette.darkBg : _bg;
+  Color get _title => _isDark ? AppPalette.darkAccent : _titleColor;
+  Color get _desc => _isDark ? AppPalette.darkText : const Color(0xFF3A3A3A);
+  Color get _skip =>
+      _isDark ? AppPalette.darkAccent : const Color(0xFF3E7D4F);
+  Color get _dotOn => _isDark ? AppPalette.darkAccent : _dotActive;
+  Color get _dotOff => _isDark ? AppPalette.darkLine : _dotInactive;
+  Color get _buttonBg => _isDark ? AppPalette.darkCard : Colors.white;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -81,44 +92,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Dibangun ulang otomatis saat bahasa diganti.
+    // Dibangun ulang otomatis saat bahasa atau tema diganti.
     return AnimatedBuilder(
       animation: AppSettings.instance,
       builder: (context, _) => Scaffold(
-        backgroundColor: _bg,
-        body: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(
-                height: 48,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _isLast
-                      ? null
-                      : TextButton(
-                          onPressed: _goLogin,
-                          child: Text(L.t('Lewati'),
-                              style: const TextStyle(
-                                  color: Color(0xFF3E7D4F), fontSize: 13)),
-                        ),
+        backgroundColor: _pageBg,
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: _pageBg,
+          child: SafeArea(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 48,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _isLast
+                        ? null
+                        : TextButton(
+                            onPressed: _goLogin,
+                            child: Text(L.t('Lewati'),
+                                style: TextStyle(color: _skip, fontSize: 13)),
+                          ),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: _pages.length,
-                  onPageChanged: (i) => setState(() => _page = i),
-                  itemBuilder: (_, i) => _pageContent(_pages[i]),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _controller,
+                    itemCount: _pages.length,
+                    onPageChanged: (i) => setState(() => _page = i),
+                    itemBuilder: (_, i) => _pageContent(_pages[i]),
+                  ),
                 ),
-              ),
-              _dots(),
-              const SizedBox(height: 28),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: _isLast ? _lastButtons() : _nextButton(),
-              ),
-              const SizedBox(height: 32),
-            ],
+                _dots(),
+                const SizedBox(height: 28),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: _isLast ? _lastButtons() : _nextButton(),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
@@ -138,9 +153,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 errorBuilder: (_, __, ___) => Container(
                   width: 230,
                   height: 230,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFFD6E8BF),
+                    color: _isDark
+                        ? AppPalette.darkCard
+                        : const Color(0xFFD6E8BF),
                   ),
                   child: Icon(p.fallbackIcon,
                       size: 100, color: AppColors.primary),
@@ -152,10 +169,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             L.t(p.title),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: _titleColor,
+              color: _title,
               height: 1.2,
             ),
           ),
@@ -163,9 +180,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             L.t(p.description),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Color(0xFF3A3A3A),
+              color: _desc,
               height: 1.4,
             ),
           ),
@@ -186,7 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           width: active ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: active ? _dotActive : _dotInactive,
+            color: active ? _dotOn : _dotOff,
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -257,8 +274,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: OutlinedButton(
             onPressed: _goLogin,
             style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+              backgroundColor: _buttonBg,
+              foregroundColor:
+                  _isDark ? AppPalette.darkText : Colors.black,
               side: const BorderSide(color: AppColors.primary, width: 1.5),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
