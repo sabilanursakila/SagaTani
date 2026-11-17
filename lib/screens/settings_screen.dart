@@ -8,34 +8,90 @@ import '../utils/validators.dart';
 import '../widgets/saga_logo.dart';
 import '../widgets/tr.dart';
 import 'login_screen.dart';
-import '../widgets/tr.dart';
 
+// =============================================================================
+// Model kecil untuk menyusun menu
+// =============================================================================
 
-
+/// Satu baris menu pada halaman pengaturan.
 class _MenuItem {
   final IconData icon;
   final String title;
-  final String? value; // keterangan di sisi kanan (opsional)
-  final Widget? trailing; // pengganti panah, mis. saklar (opsional)
   final VoidCallback onTap;
+
+  /// Keterangan di sisi kanan (opsional).
+  final String? value;
+
+  /// `false` untuk teks yang tidak boleh diterjemahkan, mis. nama bahasa.
+  final bool translateValue;
+
+  /// Pengganti panah, mis. saklar (opsional).
+  final Widget? trailing;
+
   const _MenuItem({
     required this.icon,
     required this.title,
     required this.onTap,
     this.value,
+    this.translateValue = true,
     this.trailing,
   });
 }
 
+/// Sekelompok menu dengan satu judul kelompok.
 class _MenuSection {
   final String label;
   final List<_MenuItem> items;
   const _MenuSection(this.label, this.items);
 }
 
+/// Satu pasang pertanyaan dan jawaban di Pusat Bantuan.
+class _Faq {
+  final String question;
+  final String answer;
+  const _Faq(this.question, this.answer);
+}
+
+const _faqs = [
+  _Faq(
+    'Bagaimana cara kerja perangkat?',
+    'Sensor mendeteksi pergerakan tikus, lalu perangkat mengeluarkan suara '
+        'pengusir. Semua aktivitas tercatat di Riwayat.',
+  ),
+  _Faq(
+    'Perangkat saya tidak terhubung',
+    'Pastikan perangkat menyala dan berada dalam jangkauan Wi-Fi. '
+        'Coba matikan lalu nyalakan kembali perangkat.',
+  ),
+  _Faq(
+    'Bagaimana mengganti suara pengusir?',
+    'Buka Beranda, pilih bagian Pemilihan Suara, lalu pilih suara yang '
+        'diinginkan atau Mode Acak.',
+  ),
+  _Faq(
+    'Apa bedanya mode Otomatis dan Manual?',
+    'Otomatis: perangkat bekerja sendiri saat tikus terdeteksi. '
+        'Manual: kamu yang mengaktifkan pengusir.',
+  ),
+];
+
+const _sheetShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+);
+
+const _dialogShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(16)),
+);
+
+// =============================================================================
+// Halaman Pengaturan
+// =============================================================================
+
 class SettingsScreen extends StatelessWidget {
-  /// Dipanggil saat menu "Informasi Akun" ditekan (di MainShell: buka tab Akun).
+  /// Dipanggil saat menu "Informasi Akun" ditekan
+  /// (di MainShell: membuka tab Akun).
   final VoidCallback? onOpenAccount;
+
   const SettingsScreen({super.key, this.onOpenAccount});
 
   // ---------------------------------------------------------------------------
@@ -58,25 +114,19 @@ class SettingsScreen extends StatelessWidget {
           icon: Icons.notifications_none,
           title: 'Notifikasi',
           onTap: () => s.notifications = !s.notifications,
-          trailing: Transform.scale(
-            scale: 0.8,
-            child: Switch(
-              value: s.notifications,
-              activeTrackColor: AppColors.online,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: (v) => s.notifications = v,
-            ),
-          ),
+          trailing: _notificationSwitch(s),
         ),
         _MenuItem(
           icon: Icons.language,
           title: 'Bahasa',
           value: s.languageLabel,
+          translateValue: false, // nama bahasa tampil apa adanya
           onTap: () => _pickOne(
             context,
             title: 'Pilih Bahasa',
             options: AppSettings.languages,
             selected: s.language,
+            translateOptions: false,
             onSelected: (i) => s.language = i,
           ),
         ),
@@ -123,6 +173,18 @@ class SettingsScreen extends StatelessWidget {
     ];
   }
 
+  Widget _notificationSwitch(AppSettings s) {
+    return Transform.scale(
+      scale: 0.8,
+      child: Switch(
+        value: s.notifications,
+        activeTrackColor: AppColors.online,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        onChanged: (v) => s.notifications = v,
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Aksi
   // ---------------------------------------------------------------------------
@@ -130,15 +192,19 @@ class SettingsScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: _dialogShape,
         title: const Tr('Keluar dari akun?', style: TextStyle(fontSize: 16)),
-        content: const Tr('Kamu perlu masuk lagi untuk memakai aplikasi.',
-            style: TextStyle(fontSize: 13)),
+        content: const Tr(
+          'Kamu perlu masuk lagi untuk memakai aplikasi.',
+          style: TextStyle(fontSize: 13),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Tr('Batal',
-                style: TextStyle(color: AppColors.textMuted)),
+            child: const Tr(
+              'Batal',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -149,9 +215,13 @@ class SettingsScreen extends StatelessWidget {
                 (route) => false,
               );
             },
-            child: Tr('Keluar',
-                style: TextStyle(
-                    color: ctx.accent, fontWeight: FontWeight.w700)),
+            child: Tr(
+              'Keluar',
+              style: TextStyle(
+                color: ctx.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -170,44 +240,17 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  static const _sheetShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  );
-
-  Widget _sheetTop(BuildContext context, String title) {
-    return Column(
-      children: [
-        const SizedBox(height: 10),
-        Container(
-          width: 36,
-          height: 4,
-          decoration: BoxDecoration(
-            color: context.isDark ? AppPalette.darkLine : AppColors.border,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Tr(title,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: context.accent)),
-          ),
-        ),
-      ],
-    );
-  }
-
   /// Lembar pilihan: pilih salah satu dari beberapa opsi.
+  ///
+  /// [translateOptions] diisi `false` untuk daftar yang tidak perlu
+  /// diterjemahkan, misalnya nama-nama bahasa.
   void _pickOne(
     BuildContext context, {
     required String title,
     required List<String> options,
     required int selected,
     required ValueChanged<int> onSelected,
+    bool translateOptions = true,
   }) {
     showModalBottomSheet<void>(
       context: context,
@@ -220,11 +263,15 @@ class SettingsScreen extends StatelessWidget {
             _sheetTop(ctx, title),
             for (int i = 0; i < options.length; i++)
               ListTile(
-                title: Tr(options[i],
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            i == selected ? FontWeight.w700 : FontWeight.w500)),
+                title: _label(
+                  options[i],
+                  TextStyle(
+                    fontSize: 13,
+                    fontWeight:
+                        i == selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  translate: translateOptions,
+                ),
                 trailing: i == selected
                     ? const Icon(Icons.check_circle, color: AppColors.online)
                     : null,
@@ -244,23 +291,29 @@ class SettingsScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: _dialogShape,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SagaLogo(size: 72),
             const SizedBox(height: 10),
-            Text('Saga Tani',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: ctx.accent)),
+            Text(
+              'Saga Tani',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: ctx.accent,
+              ),
+            ),
             const SizedBox(height: 2),
-            const Tr('Versi 1.0.0',
-                style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+            const Tr(
+              'Versi 1.0.0',
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
             const SizedBox(height: 12),
             const Tr(
-              'Aplikasi pemantauan perangkat repelan hama tikus berbasis IoT untuk membantu petani menjaga sawah.',
+              'Aplikasi pemantauan perangkat repelan hama tikus berbasis IoT '
+              'untuk membantu petani menjaga sawah.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11),
             ),
@@ -269,9 +322,13 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Tr('Tutup',
-                style: TextStyle(
-                    color: ctx.accent, fontWeight: FontWeight.w700)),
+            child: Tr(
+              'Tutup',
+              style: TextStyle(
+                color: ctx.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -279,25 +336,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showHelp(BuildContext context) {
-    const faqs = [
-      [
-        'Bagaimana cara kerja perangkat?',
-        'Sensor mendeteksi pergerakan tikus, lalu perangkat mengeluarkan suara pengusir. Semua aktivitas tercatat di Riwayat.'
-      ],
-      [
-        'Perangkat saya tidak terhubung',
-        'Pastikan perangkat menyala dan berada dalam jangkauan Wi-Fi. Coba matikan lalu nyalakan kembali perangkat.'
-      ],
-      [
-        'Bagaimana mengganti suara pengusir?',
-        'Buka Beranda, pilih bagian Pemilihan Suara, lalu pilih suara yang diinginkan atau Mode Acak.'
-      ],
-      [
-        'Apa bedanya mode Otomatis dan Manual?',
-        'Otomatis: perangkat bekerja sendiri saat tikus terdeteksi. Manual: kamu yang mengaktifkan pengusir.'
-      ],
-    ];
-    final maxH = MediaQuery.of(context).size.height * 0.7;
+    final maxHeight = MediaQuery.of(context).size.height * 0.7;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: context.cardBg,
@@ -305,7 +344,7 @@ class SettingsScreen extends StatelessWidget {
       shape: _sheetShape,
       builder: (ctx) => SafeArea(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxH),
+          constraints: BoxConstraints(maxHeight: maxHeight),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -315,22 +354,30 @@ class SettingsScreen extends StatelessWidget {
                   shrinkWrap: true,
                   padding: const EdgeInsets.only(bottom: 16),
                   children: [
-                    for (final f in faqs)
+                    for (final faq in _faqs)
                       ExpansionTile(
                         shape: const Border(),
                         collapsedShape: const Border(),
                         iconColor: ctx.accent,
                         textColor: ctx.accent,
-                        title: Tr(f[0],
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w600)),
+                        title: Tr(
+                          faq.question,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         childrenPadding:
                             const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         expandedAlignment: Alignment.centerLeft,
                         children: [
-                          Tr(f[1],
-                              style: const TextStyle(
-                                  fontSize: 11, color: AppColors.textMuted)),
+                          Tr(
+                            faq.answer,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
                         ],
                       ),
                   ],
@@ -344,12 +391,53 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
+  // Potongan tampilan yang dipakai ulang
+  // ---------------------------------------------------------------------------
+
+  /// Teks yang otomatis diterjemahkan, atau apa adanya bila [translate] false.
+  Widget _label(String text, TextStyle style, {bool translate = true}) {
+    return translate ? Tr(text, style: style) : Text(text, style: style);
+  }
+
+  /// Bagian atas lembar (garis kecil + judul).
+  Widget _sheetTop(BuildContext context, String title) {
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          width: 36,
+          height: 4,
+          decoration: BoxDecoration(
+            color: context.isDark ? AppPalette.darkLine : AppColors.border,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Tr(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: context.accent,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Tampilan
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pageBg,
+      // Dibangun ulang saat data pengguna ATAU pengaturan (bahasa, tema) berubah.
       body: AnimatedBuilder(
         animation:
             Listenable.merge([UserSession.instance, AppSettings.instance]),
@@ -374,9 +462,13 @@ class SettingsScreen extends StatelessWidget {
                       _logoutButton(context),
                       const SizedBox(height: 14),
                       const Center(
-                        child: Tr('Saga Tani  •  Versi 1.0.0',
-                            style: TextStyle(
-                                fontSize: 9, color: AppColors.textMuted)),
+                        child: Tr(
+                          'Saga Tani  •  Versi 1.0.0',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -389,31 +481,32 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  /// Satu lapisan gelombang header.
+  Widget _waveLayer(CustomClipper<Path> clipper, Color color) {
+    return Positioned.fill(
+      child: ClipPath(
+        clipper: clipper,
+        child: ColoredBox(color: color),
+      ),
+    );
+  }
+
   /// Header hijau dengan tiga lapisan gelombang (makin ke bawah makin terang).
   Widget _header(BuildContext context) {
     final dark = context.isDark;
     return Stack(
       children: [
-        Positioned.fill(
-          child: ClipPath(
-            clipper: const _LayerWaveClipper(10, -6, 24, 2),
-            child: ColoredBox(
-                color: dark ? const Color(0xFF14231B) : const Color(0xFFE9FFEA)),
-          ),
+        _waveLayer(
+          const _LayerWaveClipper(10, -6, 24, 2),
+          dark ? const Color(0xFF14231B) : const Color(0xFFE9FFEA),
         ),
-        Positioned.fill(
-          child: ClipPath(
-            clipper: const _LayerWaveClipper(26, 4, 42, 16),
-            child: ColoredBox(
-                color: dark ? const Color(0xFF193024) : const Color(0xFFC9FACB)),
-          ),
+        _waveLayer(
+          const _LayerWaveClipper(26, 4, 42, 16),
+          dark ? const Color(0xFF193024) : const Color(0xFFC9FACB),
         ),
-        Positioned.fill(
-          child: ClipPath(
-            clipper: const _LayerWaveClipper(44, 20, 60, 34),
-            child: ColoredBox(
-                color: dark ? const Color(0xFF1F3D2D) : const Color(0xFFA6F5A9)),
-          ),
+        _waveLayer(
+          const _LayerWaveClipper(44, 20, 60, 34),
+          dark ? const Color(0xFF1F3D2D) : const Color(0xFFA6F5A9),
         ),
         Container(
           width: double.infinity,
@@ -430,15 +523,22 @@ class SettingsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Saga Tani',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: context.accent)),
+                        Text(
+                          'Saga Tani',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: context.accent,
+                          ),
+                        ),
                         const SizedBox(height: 2),
-                        const Tr('Solusi para petani',
-                            style: TextStyle(
-                                fontSize: 12, color: AppColors.textMuted)),
+                        const Tr(
+                          'Solusi para petani',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -453,7 +553,7 @@ class SettingsScreen extends StatelessWidget {
 
   /// Kartu data pengguna: foto, nama, email / no. HP, dan label peran.
   Widget _userCard(BuildContext context) {
-    final u = UserSession.instance;
+    final user = UserSession.instance;
     return Material(
       color: context.cardBg,
       elevation: 2,
@@ -473,26 +573,36 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(u.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text(
+                    user.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(u.contact,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 10, color: context.textSub)),
+                  Text(
+                    user.contact,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 10, color: context.textSub),
+                  ),
                   const SizedBox(height: 6),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Tr('Pengguna',
-                        style: TextStyle(color: Colors.white, fontSize: 9)),
+                    child: const Tr(
+                      'Pengguna',
+                      style: TextStyle(color: Colors.white, fontSize: 9),
+                    ),
                   ),
                 ],
               ),
@@ -503,14 +613,19 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionLabel(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Tr(text,
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: context.accent)),
-      );
+  Widget _sectionLabel(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Tr(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: context.accent,
+        ),
+      ),
+    );
+  }
 
   /// Satu kelompok menu dalam kartu, dipisah garis tipis.
   Widget _sectionCard(BuildContext context, List<_MenuItem> items) {
@@ -556,17 +671,23 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Tr(item.title,
-                  style: const TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w500)),
+              child: Tr(
+                item.title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
             if (item.trailing != null)
               item.trailing!
             else ...[
               if (item.value != null) ...[
-                Tr(item.value!,
-                    style: const TextStyle(
-                        fontSize: 9, color: AppColors.textMuted)),
+                _label(
+                  item.value!,
+                  const TextStyle(fontSize: 9, color: AppColors.textMuted),
+                  translate: item.translateValue,
+                ),
                 const SizedBox(width: 4),
               ],
               Icon(Icons.chevron_right, size: 18, color: context.textSub),
@@ -586,7 +707,10 @@ class SettingsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 4)),
+            color: Color(0x40000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Material(
@@ -600,11 +724,14 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 Icon(Icons.logout, size: 18, color: Colors.white),
                 SizedBox(width: 8),
-                Tr('Keluar',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600)),
+                Tr(
+                  'Keluar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -613,6 +740,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
+
+// =============================================================================
+// Dialog ubah kata sandi
+// =============================================================================
 
 /// Dialog ubah kata sandi (sandi lama, sandi baru, konfirmasi).
 class _ChangePasswordDialog extends StatefulWidget {
@@ -624,16 +755,16 @@ class _ChangePasswordDialog extends StatefulWidget {
 
 class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _oldC = TextEditingController();
-  final _newC = TextEditingController();
-  final _confirmC = TextEditingController();
+  final _oldController = TextEditingController();
+  final _newController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _hide = true;
 
   @override
   void dispose() {
-    _oldC.dispose();
-    _newC.dispose();
-    _confirmC.dispose();
+    _oldController.dispose();
+    _newController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
@@ -643,18 +774,25 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
     Navigator.of(context).pop(true);
   }
 
-  InputDecoration _dec(String label, {bool toggle = false}) {
-    OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: c, width: w),
-        );
+  /// Menerjemahkan pesan error validator (null tetap null).
+  String? _translate(String? error) => error == null ? null : L.t(error);
+
+  InputDecoration _decoration(String label, {bool toggle = false}) {
+    OutlineInputBorder border(Color color, [double width = 1]) {
+      return OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: color, width: width),
+      );
+    }
+
+    const green = Color(0xFF1B8F5A);
     return InputDecoration(
       labelText: L.t(label),
       labelStyle: const TextStyle(fontSize: 11),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      enabledBorder: border(const Color(0xFF1B8F5A)),
-      focusedBorder: border(const Color(0xFF1B8F5A), 1.4),
+      enabledBorder: border(green),
+      focusedBorder: border(green, 1.4),
       errorBorder: border(Colors.red.shade700),
       focusedErrorBorder: border(Colors.red.shade700, 1.4),
       suffixIcon: toggle
@@ -670,7 +808,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: _dialogShape,
       title: const Tr('Ubah Kata Sandi', style: TextStyle(fontSize: 16)),
       content: SingleChildScrollView(
         child: Form(
@@ -679,27 +817,27 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: _oldC,
+                controller: _oldController,
                 obscureText: _hide,
                 style: const TextStyle(fontSize: 12),
-                decoration: _dec('Sandi lama', toggle: true),
-                validator: Validators.loginPassword,
+                decoration: _decoration('Sandi lama', toggle: true),
+                validator: (v) => _translate(Validators.loginPassword(v)),
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _newC,
+                controller: _newController,
                 obscureText: _hide,
                 style: const TextStyle(fontSize: 12),
-                decoration: _dec('Sandi baru'),
-                validator: Validators.newPassword,
+                decoration: _decoration('Sandi baru'),
+                validator: (v) => _translate(Validators.newPassword(v)),
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _confirmC,
+                controller: _confirmController,
                 obscureText: _hide,
                 style: const TextStyle(fontSize: 12),
-                decoration: _dec('Konfirmasi sandi baru'),
-                validator: (v) => v == _newC.text
+                decoration: _decoration('Konfirmasi sandi baru'),
+                validator: (v) => v == _newController.text
                     ? null
                     : L.t('Konfirmasi sandi tidak sama'),
               ),
@@ -710,21 +848,32 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child:
-              const Tr('Batal', style: TextStyle(color: AppColors.textMuted)),
+          child: const Tr(
+            'Batal',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
         ),
         TextButton(
           onPressed: _submit,
-          child: Tr('Simpan',
-              style: TextStyle(
-                  color: context.accent, fontWeight: FontWeight.w700)),
+          child: Tr(
+            'Simpan',
+            style: TextStyle(
+              color: context.accent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
+// =============================================================================
+// Potongan gelombang header
+// =============================================================================
+
 /// Potongan gelombang untuk satu lapisan header.
+///
 /// Empat angka = jarak tepi bawah dari dasar header: kiri, kontrol 1,
 /// kontrol 2, dan kanan (membentuk gelombang berbentuk huruf S).
 class _LayerWaveClipper extends CustomClipper<Path> {
@@ -732,6 +881,7 @@ class _LayerWaveClipper extends CustomClipper<Path> {
   final double control1;
   final double control2;
   final double right;
+
   const _LayerWaveClipper(this.left, this.control1, this.control2, this.right);
 
   @override
