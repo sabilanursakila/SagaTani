@@ -1,113 +1,107 @@
 import 'package:flutter/material.dart';
 
-import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
-import '../utils/validators.dart';
 import '../widgets/tr.dart';
-import 'login_screen.dart';
 
-/// Halaman Akun: profil pengguna, ringkasan, informasi akun, dan perangkat.
+const _hijauMuda = Color(0xFF1B8F5A);
+const _hijauTua = Color(0xFF0B5F3F);
+
+/// Tab Akun: ringkasan data pengguna dengan tampilan header hijau.
+/// Tombol "Edit Profil" membuka halaman [EditProfileScreen].
+/// Navigasi bawah dipegang oleh MainShell, jadi tidak ada di sini.
 class ProfileScreen extends StatelessWidget {
-  /// Dipanggil saat tombol kembali di header ditekan (opsional).
-  /// Jika null, tombol kembali tidak ditampilkan.
+  /// Dipanggil saat panah kembali ditekan (di MainShell: kembali
+  /// ke halaman sebelumnya).
   final VoidCallback? onBack;
+  const ProfileScreen({super.key, this.onBack});
 
-  /// Dipanggil saat kartu "Perangkat Saya" ditekan (opsional).
-  final VoidCallback? onOpenDevice;
+  void _kembali(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+    } else {
+      Navigator.of(context).maybePop();
+    }
+  }
 
-  const ProfileScreen({super.key, this.onBack, this.onOpenDevice});
-
-  static const _dialogShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(16)),
-  );
-
-  /// Teks dua bahasa langsung di tempat (untuk teks yang tidak ada di kamus).
-  String _t(String id, String en) => AppSettings.instance.isEnglish ? en : id;
-
-  // ---------------------------------------------------------------------------
-  // Aksi
-  // ---------------------------------------------------------------------------
-  void _confirmLogout(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: _dialogShape,
-        title: const Tr('Keluar dari akun?', style: TextStyle(fontSize: 16)),
-        content: const Tr(
-          'Kamu perlu masuk lagi untuk memakai aplikasi.',
-          style: TextStyle(fontSize: 13),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Tr('Batal',
-                style: TextStyle(color: AppColors.textMuted)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              UserSession.instance.logout();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            child: Tr('Keluar',
-                style: TextStyle(
-                    color: ctx.accent, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+  void _bukaEdit(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
     );
   }
 
-  Future<void> _editProfile(BuildContext context) async {
-    final user = UserSession.instance;
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (_) => _EditProfileDialog(initialName: user.name),
-    );
-    if (newName == null || !context.mounted) return;
-
-    // TODO: simpan ke server jika sudah ada backend.
-    user.register(name: newName, contact: user.contact);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(L.t('Perubahan berhasil disimpan'))),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Tampilan
-  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pageBg,
       body: AnimatedBuilder(
-        animation:
-            Listenable.merge([UserSession.instance, AppSettings.instance]),
+        animation: UserSession.instance,
         builder: (context, _) {
-          final user = UserSession.instance;
+          final u = UserSession.instance;
           return SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _header(context, user),
+                _HeaderAkun(
+                  nama: u.name,
+                  kontak: u.contact,
+                  onBack: () => _kembali(context),
+                  onEdit: () => _bukaEdit(context),
+                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _statsRow(context),
-                      const SizedBox(height: 22),
-                      _sectionLabel(context, L.t('Informasi Akun')),
-                      _infoCard(context, user),
-                      const SizedBox(height: 22),
-                      _sectionLabel(context, _t('Perangkat Saya', 'My Device')),
-                      _deviceCard(),
-                      const SizedBox(height: 26),
-                      _logoutButton(context),
+                      _Muncul(
+                        urutan: 0,
+                        child: Tr(
+                          'Informasi Akun',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: context.accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _Muncul(
+                        urutan: 1,
+                        child: _InfoTile(
+                          icon: Icons.person_outline_rounded,
+                          label: 'Nama Lengkap',
+                          value: u.name,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _Muncul(
+                        urutan: 2,
+                        child: _InfoTile(
+                          icon: Icons.mail_outline_rounded,
+                          label: 'Email',
+                          value: u.email,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _Muncul(
+                        urutan: 3,
+                        child: _InfoTile(
+                          icon: Icons.phone_outlined,
+                          label: 'No Telepon',
+                          value: u.phone,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _Muncul(
+                        urutan: 4,
+                        child: _TombolUtama(
+                          icon: Icons.edit_outlined,
+                          teks: 'Edit Profil',
+                          onTap: () => _bukaEdit(context),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -118,407 +112,451 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  /// Satu lapisan gelombang header.
-  Widget _waveLayer(CustomClipper<Path> clipper, Color color) {
-    return Positioned.fill(
-      child: ClipPath(
-        clipper: clipper,
-        child: ColoredBox(color: color),
-      ),
+// =============================================================================
+// Halaman Edit Profil
+// =============================================================================
+class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  final _nameC = TextEditingController();
+  final _emailC = TextEditingController();
+  final _phoneC = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Isi kolom dari data pengguna yang sedang masuk.
+    final u = UserSession.instance;
+    _nameC.text = u.name;
+    _emailC.text = u.email;
+    _phoneC.text = u.phone;
+  }
+
+  @override
+  void dispose() {
+    _nameC.dispose();
+    _emailC.dispose();
+    _phoneC.dispose();
+    super.dispose();
+  }
+
+  void _simpan() {
+    FocusScope.of(context).unfocus();
+
+    if (_nameC.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(L.t('Nama tidak boleh kosong'))),
+      );
+      return;
+    }
+
+    UserSession.instance.updateProfile(
+      name: _nameC.text.trim(),
+      email: _emailC.text.trim(),
+      phone: _phoneC.text.trim(),
+    );
+
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      SnackBar(content: Text(L.t('Perubahan berhasil disimpan'))),
     );
   }
 
-  /// Header bergelombang: judul, foto profil, nama, kontak, peran, edit.
-  Widget _header(BuildContext context, UserSession user) {
-    final dark = context.isDark;
-    final name = user.name.trim();
-    final initial = name.isEmpty ? '' : name.characters.first.toUpperCase();
+  @override
+  Widget build(BuildContext context) {
+    final atas = MediaQuery.of(context).padding.top;
 
-    return Stack(
-      children: [
-        _waveLayer(
-          const _LayerWaveClipper(10, -6, 24, 2),
-          dark ? const Color(0xFF14231B) : const Color(0xFFE9FFEA),
-        ),
-        _waveLayer(
-          const _LayerWaveClipper(26, 4, 42, 16),
-          dark ? const Color(0xFF193024) : const Color(0xFFC9FACB),
-        ),
-        _waveLayer(
-          const _LayerWaveClipper(44, 20, 60, 34),
-          dark ? const Color(0xFF1F3D2D) : const Color(0xFFA6F5A9),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.only(bottom: 62),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      if (onBack != null) ...[
-                        IconButton(
-                          onPressed: onBack,
-                          icon: Icon(Icons.arrow_back, color: context.accent),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                      Text(
-                        L.t('Akun'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: context.accent,
-                        ),
-                      ),
-                    ],
+    return Scaffold(
+      backgroundColor: context.pageBg,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ===== Header =====
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(36)),
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [_hijauMuda, _hijauTua],
                   ),
-                  const SizedBox(height: 14),
-                  _avatar(context, initial),
-                  const SizedBox(height: 12),
-                  Text(
-                    name.isEmpty ? '-' : name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: context.textMain,
+                ),
+                child: Stack(
+                  children: [
+                    const Positioned(
+                      top: -40,
+                      right: -30,
+                      child: _Lingkaran(ukuran: 130, alpha: 0.10),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    user.contact,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: context.textSub),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.verified_user_outlined,
-                                size: 12, color: Colors.white),
-                            SizedBox(width: 5),
-                            Tr('Pengguna',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: () => _editProfile(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: context.accent),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                    const Positioned(
+                      bottom: -50,
+                      left: -30,
+                      child: _Lingkaran(ukuran: 150, alpha: 0.08),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, atas + 10, 16, 28),
+                      child: Column(
+                        children: [
+                          Row(
                             children: [
-                              Icon(Icons.edit_outlined,
-                                  size: 12, color: context.accent),
-                              const SizedBox(width: 5),
-                              Text(L.t('Edit Profil'),
-                                  style: TextStyle(
-                                      color: context.accent, fontSize: 10)),
+                              InkWell(
+                                onTap: () => Navigator.of(context).maybePop(),
+                                borderRadius: BorderRadius.circular(20),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: Icon(Icons.arrow_back,
+                                      color: Colors.white, size: 22),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Tr(
+                                'Edit Profil',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 18),
+                          // Inisial avatar ikut berubah saat nama diketik.
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _nameC,
+                            builder: (_, v, __) =>
+                                _Avatar(nama: v.text, ukuran: 88),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ===== Formulir =====
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Muncul(
+                    urutan: 0,
+                    child: _Kolom(
+                      label: 'Nama Lengkap',
+                      controller: _nameC,
+                      type: TextInputType.name,
+                      icon: Icons.person_outline_rounded,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _Muncul(
+                    urutan: 1,
+                    child: _Kolom(
+                      label: 'Email',
+                      controller: _emailC,
+                      type: TextInputType.emailAddress,
+                      icon: Icons.mail_outline_rounded,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _Muncul(
+                    urutan: 2,
+                    child: _Kolom(
+                      label: 'No Telepon',
+                      controller: _phoneC,
+                      type: TextInputType.phone,
+                      icon: Icons.phone_outlined,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  _Muncul(
+                    urutan: 3,
+                    child: _TombolUtama(
+                      icon: Icons.check_rounded,
+                      teks: 'Simpan Perubahan',
+                      onTap: _simpan,
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
+}
 
-  /// Foto profil: lingkaran inisial dengan cincin dan lencana kamera.
-  Widget _avatar(BuildContext context, String initial) {
+// =============================================================================
+// Komponen bersama
+// =============================================================================
+
+/// Header hijau pada halaman Akun: tombol kembali, avatar, nama, kontak.
+class _HeaderAkun extends StatelessWidget {
+  final String nama;
+  final String kontak;
+  final VoidCallback onBack;
+  final VoidCallback onEdit;
+
+  const _HeaderAkun({
+    required this.nama,
+    required this.kontak,
+    required this.onBack,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final atas = MediaQuery.of(context).padding.top;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(36)),
+      child: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_hijauMuda, _hijauTua],
+          ),
+        ),
+        child: Stack(
+          children: [
+            const Positioned(
+              top: -40,
+              right: -30,
+              child: _Lingkaran(ukuran: 130, alpha: 0.10),
+            ),
+            const Positioned(
+              bottom: -50,
+              left: -30,
+              child: _Lingkaran(ukuran: 150, alpha: 0.08),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, atas + 10, 16, 28),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: onBack,
+                        borderRadius: BorderRadius.circular(20),
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.arrow_back,
+                              color: Colors.white, size: 22),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Tr(
+                        'Akun',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  _Avatar(nama: nama, ukuran: 96, onEdit: onEdit),
+                  const SizedBox(height: 14),
+                  Text(
+                    nama.isEmpty ? '-' : nama,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    kontak,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Mengambil inisial dari nama (maksimal dua huruf).
+String _inisial(String nama) {
+  final kata =
+      nama.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+  if (kata.isEmpty) return '';
+  if (kata.length == 1) return kata[0][0].toUpperCase();
+  return (kata[0][0] + kata[1][0]).toUpperCase();
+}
+
+/// Avatar bulat berisi inisial. Jika [onEdit] diisi, muncul tombol pensil kecil.
+class _Avatar extends StatelessWidget {
+  final String nama;
+  final double ukuran;
+  final VoidCallback? onEdit;
+
+  const _Avatar({required this.nama, required this.ukuran, this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    final inisial = _inisial(nama);
+
+    final lingkaran = Container(
+      width: ukuran,
+      height: ukuran,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.6),
+          width: 4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: inisial.isEmpty
+          ? Icon(Icons.person, size: ukuran * 0.55, color: _hijauTua)
+          : Text(
+              inisial,
+              style: TextStyle(
+                fontSize: ukuran * 0.36,
+                fontWeight: FontWeight.w800,
+                color: _hijauTua,
+              ),
+            ),
+    );
+
+    if (onEdit == null) return lingkaran;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF58A046), Color(0xFF0B5B3B)],
-            ),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: context.pageBg,
-            ),
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: context.softBg,
-              child: initial.isEmpty
-                  ? Icon(Icons.person, size: 44, color: context.accent)
-                  : Text(
-                      initial,
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w700,
-                        color: context.accent,
-                      ),
-                    ),
-            ),
-          ),
-        ),
+        lingkaran,
         Positioned(
-          right: 0,
-          bottom: 2,
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-              border: Border.all(color: context.pageBg, width: 2),
+          right: -2,
+          bottom: -2,
+          child: GestureDetector(
+            onTap: onEdit,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _hijauMuda,
+                border: Border.all(color: Colors.white, width: 3),
+              ),
+              child: const Icon(Icons.edit, size: 15, color: Colors.white),
             ),
-            // TODO: sambungkan ke pemilih foto.
-            child:
-                const Icon(Icons.camera_alt, size: 13, color: Colors.white),
           ),
         ),
       ],
     );
   }
+}
 
-  // ---------------------------------------------------------------------------
-  // Statistik
-  // ---------------------------------------------------------------------------
-  Widget _statsRow(BuildContext context) {
-    final dark = context.isDark;
-    // TODO: ganti angka dengan data asli dari perangkat / Riwayat.
-    return Row(
-      children: [
-        Expanded(
-          child: _statCard(
-            context,
-            icon: Icons.router_outlined,
-            value: '1',
-            label: L.t('Perangkat'),
-            fg: const Color(0xFF2E9E4F),
-            bg: dark ? const Color(0xFF22362B) : const Color(0xFFE3F6E4),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _statCard(
-            context,
-            icon: Icons.history,
-            value: '12',
-            label: _t('Aktivitas', 'Activity'),
-            fg: const Color(0xFF2F80ED),
-            bg: dark ? const Color(0xFF1E2E44) : const Color(0xFFE3F0FF),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _statCard(
-            context,
-            icon: Icons.shield_outlined,
-            value: '8',
-            label: _t('Terusir', 'Repelled'),
-            fg: const Color(0xFFF2994A),
-            bg: dark ? const Color(0xFF3A3020) : const Color(0xFFFFF1D6),
-          ),
-        ),
-      ],
-    );
-  }
+/// Lingkaran dekoratif pada header.
+class _Lingkaran extends StatelessWidget {
+  final double ukuran;
+  final double alpha;
+  const _Lingkaran({required this.ukuran, required this.alpha});
 
-  Widget _statCard(
-    BuildContext context, {
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color fg,
-    required Color bg,
-  }) {
-    return Material(
-      color: context.cardBg,
-      elevation: 2,
-      shadowColor: AppColors.shadow,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Column(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-              child: Icon(icon, size: 18, color: fg),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: context.textMain,
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 9, color: context.textSub),
-            ),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: ukuran,
+      height: ukuran,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: alpha),
       ),
     );
   }
+}
 
-  // ---------------------------------------------------------------------------
-  // Informasi akun
-  // ---------------------------------------------------------------------------
-  Widget _sectionLabel(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: context.accent,
-        ),
-      ),
-    );
-  }
+/// Kartu satu data (ikon + label + nilai).
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
 
-  Widget _infoCard(BuildContext context, UserSession user) {
-    final dark = context.isDark;
-    final isEmail = user.contact.contains('@');
-    final rows = <Widget>[
-      _infoRow(
-        context,
-        icon: Icons.person_outline,
-        label: L.t('Nama Lengkap'),
-        value: user.name.isEmpty ? '-' : user.name,
-        fg: const Color(0xFF2E9E4F),
-        bg: dark ? const Color(0xFF22362B) : const Color(0xFFE3F6E4),
-      ),
-      _infoRow(
-        context,
-        icon: isEmail ? Icons.mail_outline : Icons.phone_outlined,
-        label: L.t(isEmail ? 'Email' : 'No Telepon'),
-        value: user.contact.isEmpty ? '-' : user.contact,
-        fg: const Color(0xFF2F80ED),
-        bg: dark ? const Color(0xFF1E2E44) : const Color(0xFFE3F0FF),
-      ),
-      _infoRow(
-        context,
-        icon: Icons.badge_outlined,
-        label: _t('Peran', 'Role'),
-        value: L.t('Pengguna'),
-        fg: const Color(0xFF9B51E0),
-        bg: dark ? const Color(0xFF2E2440) : const Color(0xFFF0E6FB),
-      ),
-      _infoRow(
-        context,
-        icon: Icons.verified_outlined,
-        label: _t('Status Akun', 'Account Status'),
-        value: L.t('Aktif'),
-        fg: const Color(0xFFF2994A),
-        bg: dark ? const Color(0xFF3A3020) : const Color(0xFFFFF1D6),
-        valueColor: AppColors.online,
-      ),
-    ];
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
-    return Material(
-      color: context.cardBg,
-      elevation: 2,
-      shadowColor: AppColors.shadow,
-      borderRadius: BorderRadius.circular(14),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++) ...[
-            rows[i],
-            if (i != rows.length - 1)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: 62,
-                endIndent: 14,
-                color: context.lineColor,
-              ),
-          ],
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _infoRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color fg,
-    required Color bg,
-    Color? valueColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-            child: Icon(icon, size: 18, color: fg),
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: context.softBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 22, color: context.accent),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: TextStyle(fontSize: 9, color: context.textSub)),
-                const SizedBox(height: 2),
+                Tr(
+                  label,
+                  style: TextStyle(fontSize: 11, color: context.textSub),
+                ),
+                const SizedBox(height: 3),
                 Text(
-                  value,
+                  value.isEmpty ? '-' : value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: valueColor ?? context.textMain,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -528,216 +566,136 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  // ---------------------------------------------------------------------------
-  // Perangkat & keluar
-  // ---------------------------------------------------------------------------
-  Widget _deviceCard() {
+/// Tombol hijau bergradasi selebar layar.
+class _TombolUtama extends StatelessWidget {
+  final IconData icon;
+  final String teks;
+  final VoidCallback onTap;
+
+  const _TombolUtama({
+    required this.icon,
+    required this.teks,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      height: 52,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF58A046), Color(0xFF0B5B3B)],
-        ),
-        boxShadow: const [
+        gradient: const LinearGradient(colors: [_hijauMuda, _hijauTua]),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x40245A28),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: _hijauTua.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onOpenDevice,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    color: Color(0x33FFFFFF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.home_outlined,
-                      size: 26, color: Colors.white),
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Tr(
+                teks,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('R-001',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.circle,
-                              size: 7, color: Color(0xFF4CD964)),
-                          const SizedBox(width: 5),
-                          Text(L.t('Online'),
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 10)),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.battery_full,
-                              size: 13, color: Colors.white),
-                          const SizedBox(width: 3),
-                          const Text('87%',
-                              style: TextStyle(
-                                  color: Colors.white, fontSize: 10)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.white),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _logoutButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 46,
-      child: OutlinedButton.icon(
-        onPressed: () => _confirmLogout(context),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFE05A5A),
-          side: const BorderSide(color: Color(0xFFE05A5A), width: 1.2),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
-        icon: const Icon(Icons.logout, size: 18),
-        label: Text(
-          L.t('Keluar'),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
 }
 
-// =============================================================================
-// Dialog edit profil
-// =============================================================================
+/// Kolom isian dengan label, ikon, dan bingkai bulat.
+class _Kolom extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final TextInputType type;
+  final IconData icon;
 
-class _EditProfileDialog extends StatefulWidget {
-  final String initialName;
-  const _EditProfileDialog({required this.initialName});
-
-  @override
-  State<_EditProfileDialog> createState() => _EditProfileDialogState();
-}
-
-class _EditProfileDialogState extends State<_EditProfileDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameCtrl =
-      TextEditingController(text: widget.initialName);
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop(_nameCtrl.text.trim());
-  }
+  const _Kolom({
+    required this.label,
+    required this.controller,
+    required this.type,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    OutlineInputBorder border(Color color, [double width = 1]) =>
-        OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: color, width: width),
+    OutlineInputBorder garis(double lebar, double alpha) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: _hijauMuda.withValues(alpha: alpha),
+            width: lebar,
+          ),
         );
-    const green = Color(0xFF1B8F5A);
 
-    return AlertDialog(
-      shape: ProfileScreen._dialogShape,
-      title: const Tr('Edit Profil', style: TextStyle(fontSize: 16)),
-      content: Form(
-        key: _formKey,
-        child: TextFormField(
-          controller: _nameCtrl,
-          textCapitalization: TextCapitalization.words,
-          style: const TextStyle(fontSize: 12),
-          validator: (v) {
-            final error = Validators.name(v);
-            return error == null ? null : L.t(error);
-          },
-          decoration: InputDecoration(
-            labelText: L.t('Nama Lengkap'),
-            labelStyle: const TextStyle(fontSize: 11),
-            isDense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            enabledBorder: border(green),
-            focusedBorder: border(green, 1.4),
-            errorBorder: border(Colors.red.shade700),
-            focusedErrorBorder: border(Colors.red.shade700, 1.4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Tr(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child:
-              const Tr('Batal', style: TextStyle(color: AppColors.textMuted)),
-        ),
-        TextButton(
-          onPressed: _submit,
-          child: Tr('Simpan',
-              style: TextStyle(
-                  color: context.accent, fontWeight: FontWeight.w700)),
+        TextField(
+          controller: controller,
+          keyboardType: type,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: context.cardBg,
+            prefixIcon: Icon(icon, color: _hijauMuda, size: 22),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: garis(1, 0.45),
+            enabledBorder: garis(1, 0.45),
+            focusedBorder: garis(1.8, 1),
+          ),
         ),
       ],
     );
   }
 }
 
-// =============================================================================
-// Potongan gelombang header
-// =============================================================================
-
-/// Potongan gelombang untuk satu lapisan header.
-class _LayerWaveClipper extends CustomClipper<Path> {
-  final double left;
-  final double control1;
-  final double control2;
-  final double right;
-
-  const _LayerWaveClipper(this.left, this.control1, this.control2, this.right);
+/// Animasi muncul: memudar masuk sambil naik dari bawah.
+/// [urutan] makin besar = muncul makin belakangan.
+class _Muncul extends StatelessWidget {
+  final int urutan;
+  final Widget child;
+  const _Muncul({required this.urutan, required this.child});
 
   @override
-  Path getClip(Size size) {
-    final w = size.width;
-    final h = size.height;
-    final path = Path()..lineTo(0, h - left);
-    path.cubicTo(w * 0.3, h - control1, w * 0.7, h - control2, w, h - right);
-    path.lineTo(w, 0);
-    path.close();
-    return path;
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 350 + urutan * 100),
+      curve: Curves.easeOutCubic,
+      builder: (context, nilai, child) => Opacity(
+        opacity: nilai,
+        child: Transform.translate(
+          offset: Offset(0, 24 * (1 - nilai)),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
   }
-
-  @override
-  bool shouldReclip(covariant _LayerWaveClipper old) =>
-      old.left != left ||
-      old.control1 != control1 ||
-      old.control2 != control2 ||
-      old.right != right;
 }
