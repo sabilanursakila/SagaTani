@@ -4,12 +4,12 @@ import '../widgets/app_bottom_nav.dart';
 import 'device_detail_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
-import 'scan_screen.dart';
+import 'riwayat_screen.dart';
 import 'settings_screen.dart';
 
 /// Kerangka utama: 4 halaman + menu navigasi bawah.
-/// Urutan tab: 0 Beranda, 1 Detail Perangkat, 2 Akun, 3 Pengaturan.
-/// Tombol kamera di tengah membuka halaman scan (bukan tab).
+/// Urutan tab: 0 Beranda, 1 Detail Perangkat, 2 Riwayat, 3 Pengaturan.
+/// Halaman Akun dibuka dari Pengaturan (Informasi Akun).
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -22,10 +22,18 @@ class _MainShellState extends State<MainShell> {
 
   void _go(int i) => setState(() => _index = i);
 
-  void _openScan() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ScanScreen()),
+  /// Membuka halaman Akun sebagai halaman terpisah (ada tombol kembali).
+  void _openProfile() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => ProfileScreen(
+          onBack: () => Navigator.of(ctx).pop(),
+          onOpenDevice: () {
+            Navigator.of(ctx).pop();
+            _go(1);
+          },
+        ),
+      ),
     );
   }
 
@@ -37,14 +45,13 @@ class _MainShellState extends State<MainShell> {
         children: [
           HomeScreen(onOpenDevice: () => _go(1)),
           DeviceDetailScreen(onBack: () => _go(0)),
-          ProfileScreen(onBack: () => _go(0)),
-          SettingsScreen(onOpenAccount: () => _go(2)),
+          const RiwayatScreen(),
+          SettingsScreen(onOpenAccount: _openProfile),
         ],
       ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: _index,
         onTap: _go,
-        onScanTap: _openScan,
       ),
     );
   }

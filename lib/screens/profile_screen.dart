@@ -10,10 +10,14 @@ import 'login_screen.dart';
 
 /// Halaman Akun: profil pengguna, ringkasan, informasi akun, dan perangkat.
 class ProfileScreen extends StatelessWidget {
+  /// Dipanggil saat tombol kembali di header ditekan (opsional).
+  /// Jika null, tombol kembali tidak ditampilkan.
+  final VoidCallback? onBack;
+
   /// Dipanggil saat kartu "Perangkat Saya" ditekan (opsional).
   final VoidCallback? onOpenDevice;
 
-  const ProfileScreen({super.key, this.onOpenDevice});
+  const ProfileScreen({super.key, this.onBack, this.onOpenDevice});
 
   static const _dialogShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -154,16 +158,27 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      L.t('Akun'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: context.accent,
+                  Row(
+                    children: [
+                      if (onBack != null) ...[
+                        IconButton(
+                          onPressed: onBack,
+                          icon: Icon(Icons.arrow_back, color: context.accent),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Text(
+                        L.t('Akun'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: context.accent,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 14),
                   _avatar(context, initial),
