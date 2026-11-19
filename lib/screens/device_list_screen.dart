@@ -109,7 +109,7 @@ class DeviceListScreen extends StatelessWidget {
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE3F6E4),
+                              color: context.softBg,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -121,10 +121,10 @@ class DeviceListScreen extends StatelessWidget {
                                   color: AppColors.online,
                                 ),
                                 const SizedBox(width: 5),
-                                const Tr(
+                                Tr(
                                   'Online',
                                   style: TextStyle(
-                                    color: Color(0xFF28783A),
+                                    color: context.accent,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                   ),

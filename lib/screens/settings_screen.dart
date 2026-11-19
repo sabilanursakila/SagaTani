@@ -200,9 +200,9 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Tr(
+            child: Tr(
               'Batal',
-              style: TextStyle(color: AppColors.textMuted),
+              style: TextStyle(color: ctx.textSub),
             ),
           ),
           TextButton(
@@ -260,29 +260,87 @@ class SettingsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _sheetTop(ctx, title),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
+              child: Divider(height: 1, color: ctx.lineColor),
+            ),
             for (int i = 0; i < options.length; i++)
-              ListTile(
-                title: _label(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _choiceOption(
+                  ctx,
                   options[i],
-                  TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        i == selected ? FontWeight.w700 : FontWeight.w500,
-                  ),
+                  selected: i == selected,
                   translate: translateOptions,
+                  showDivider: i != options.length - 1,
+                  onTap: () {
+                    onSelected(i);
+                    Navigator.of(ctx).pop();
+                  },
                 ),
-                trailing: i == selected
-                    ? const Icon(Icons.check_circle, color: AppColors.online)
-                    : null,
-                onTap: () {
-                  onSelected(i);
-                  Navigator.of(ctx).pop();
-                },
               ),
             const SizedBox(height: 8),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _choiceOption(
+    BuildContext context,
+    String label, {
+    required bool selected,
+    required bool translate,
+    required bool showDivider,
+    required VoidCallback onTap,
+  }) {
+    final checkColor = context.isDark ? AppPalette.darkBg : Colors.white;
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 17),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _label(
+                      label,
+                      TextStyle(
+                        color: selected ? context.accent : context.textMain,
+                        fontSize: 14,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      translate: translate,
+                    ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected ? context.accent : Colors.transparent,
+                      border: Border.all(
+                        color: selected ? context.accent : context.textSub,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: selected
+                        ? Icon(Icons.check_rounded,
+                            size: 16, color: checkColor)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (showDivider) Divider(height: 1, color: context.lineColor),
+      ],
     );
   }
 
@@ -305,9 +363,9 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            const Tr(
+            Tr(
               'Versi 1.0.0',
-              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 11, color: ctx.textSub),
             ),
             const SizedBox(height: 12),
             const Tr(
@@ -372,9 +430,9 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           Tr(
                             faq.answer,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMuted,
+                              color: ctx.textSub,
                             ),
                           ),
                         ],
@@ -460,12 +518,12 @@ class SettingsScreen extends StatelessWidget {
                       ],
                       _logoutButton(context),
                       const SizedBox(height: 14),
-                      const Center(
+                      Center(
                         child: Tr(
                           'Saga Tani  •  Versi 1.0.0',
                           style: TextStyle(
                             fontSize: 9,
-                            color: AppColors.textMuted,
+                            color: context.textSub,
                           ),
                         ),
                       ),
@@ -531,11 +589,11 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Tr(
+                        Tr(
                           'Solusi para petani',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textMuted,
+                            color: context.textSub,
                           ),
                         ),
                       ],
@@ -562,10 +620,10 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 28,
-              backgroundColor: Color(0xFFD9D9D9),
-              child: Icon(Icons.person, size: 34, color: Colors.black87),
+              backgroundColor: context.softBg,
+              child: Icon(Icons.person, size: 34, color: context.accent),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -595,12 +653,19 @@ class SettingsScreen extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: context.isDark
+                          ? AppPalette.darkAccent
+                          : AppColors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Tr(
+                    child: Tr(
                       'Pengguna',
-                      style: TextStyle(color: Colors.white, fontSize: 9),
+                      style: TextStyle(
+                        color: context.isDark
+                            ? AppPalette.darkBg
+                            : Colors.white,
+                        fontSize: 9,
+                      ),
                     ),
                   ),
                 ],
@@ -684,7 +749,7 @@ class SettingsScreen extends StatelessWidget {
               if (item.value != null) ...[
                 _label(
                   item.value!,
-                  const TextStyle(fontSize: 9, color: AppColors.textMuted),
+                  TextStyle(fontSize: 9, color: context.textSub),
                   translate: item.translateValue,
                 ),
                 const SizedBox(width: 4),
@@ -702,7 +767,7 @@ class SettingsScreen extends StatelessWidget {
       width: double.infinity,
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: context.isDark ? AppPalette.darkAccent : AppColors.primary,
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(
@@ -717,16 +782,18 @@ class SettingsScreen extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () => _confirmLogout(context),
-          child: const Center(
+          child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.logout, size: 18, color: Colors.white),
-                SizedBox(width: 8),
+                Icon(Icons.logout,
+                    size: 18,
+                    color: context.isDark ? AppPalette.darkBg : Colors.white),
+                const SizedBox(width: 8),
                 Tr(
                   'Keluar',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: context.isDark ? AppPalette.darkBg : Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -847,9 +914,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Tr(
+          child: Tr(
             'Batal',
-            style: TextStyle(color: AppColors.textMuted),
+            style: TextStyle(color: context.textSub),
           ),
         ),
         TextButton(

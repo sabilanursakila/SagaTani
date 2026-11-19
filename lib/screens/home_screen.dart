@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
 import '../widgets/tr.dart';
 import 'activity_detail_screen.dart';
+import 'notifications_screen.dart';
 import 'sound_selection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -60,6 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _fullText(DateTime d) =>
       '${_dayName(d)}, ${d.day} ${_monthName(d)} ${d.year} • ${_timeText(d)}';
+
+  void _openNotifications() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             IconButton(
-              onPressed: () {}, // TODO: notifikasi
+              onPressed: _openNotifications,
               tooltip: L.t('Notifikasi'),
               style: IconButton.styleFrom(
                 backgroundColor: context.softBg,
@@ -332,7 +339,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final selected = _mode == index;
       return Expanded(
         child: Material(
-          color: selected ? AppColors.primary : context.cardBg,
+          color: selected
+              ? (context.isDark ? AppPalette.darkAccent : AppColors.primary)
+              : context.cardBg,
           borderRadius: BorderRadius.circular(15),
           elevation: selected ? 2 : 0,
           shadowColor: AppColors.shadow,
@@ -368,7 +377,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Icon(
                       icon,
                       size: 19,
-                      color: selected ? Colors.white : context.accent,
+                      color: selected
+                          ? (context.isDark ? AppPalette.darkBg : Colors.white)
+                          : context.accent,
                     ),
                   ),
                   const SizedBox(width: 9),
@@ -380,7 +391,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : context.textMain,
+                        color: selected
+                            ? (context.isDark
+                                ? AppPalette.darkBg
+                                : Colors.white)
+                            : context.textMain,
                       ),
                     ),
                   ),
@@ -423,16 +438,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.schedule,
-                        size: 18, color: AppColors.primary),
+                    Icon(Icons.schedule, size: 18, color: context.accent),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(_t('Jadwal manual', 'Manual schedule'),
-                              style: const TextStyle(
-                                  fontSize: 11, color: AppColors.textMuted)),
+                              style: TextStyle(
+                                  fontSize: 11, color: context.textSub)),
                           const SizedBox(height: 2),
                           Text(_fullText(t),
                               style: const TextStyle(
@@ -440,8 +454,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.edit_outlined,
-                        size: 16, color: AppColors.textMuted),
+                    Icon(Icons.edit_outlined,
+                        size: 16, color: context.textSub),
                   ],
                 ),
               ),
@@ -538,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     isPast ? null : () => Navigator.of(ctx).pop(chosen),
                 child: Text(_t('Simpan', 'Save'),
                     style: TextStyle(
-                        color: isPast ? null : AppColors.primary)),
+                        color: isPast ? null : ctx.accent)),
               ),
             ],
           );
@@ -564,20 +578,21 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.border),
+          color: context.cardBg,
+          border: Border.all(color: context.lineColor),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: AppColors.primary),
+            Icon(icon, size: 18, color: context.accent),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textMuted)),
+                      style: TextStyle(
+                          fontSize: 11, color: context.textSub)),
                   const SizedBox(height: 1),
                   Text(value,
                       style: const TextStyle(
@@ -585,8 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right,
-                size: 18, color: AppColors.textMuted),
+            Icon(Icons.chevron_right, size: 18, color: context.textSub),
           ],
         ),
       ),
@@ -599,7 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Text(label,
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              style: TextStyle(fontSize: 11, color: context.textSub)),
           const SizedBox(height: 2),
           Text(value,
               textAlign: TextAlign.center,
@@ -657,89 +671,101 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Ringkasan kejadian terbaru; detailnya dibuka sebagai halaman terpisah.
   Widget _history() {
     final activity = sampleRatActivities.first;
+    void openDetails() => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ActivityDetailScreen(activity: activity),
+          ),
+        );
+
     return Material(
       color: context.cardBg,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
       shadowColor: AppColors.shadow,
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ActivityDetailScreen(activity: activity),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.place_outlined, size: 17, color: context.accent),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Tr(
-                      activity.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.place_outlined, size: 17, color: context.accent),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Tr(
+                    activity.location,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: activity.status.bg,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      L.t(activity.status.label),
-                      style: TextStyle(
-                        color: activity.status.fg,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: activity.status.backgroundFor(context),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    L.t(activity.status.label),
+                    style: TextStyle(
+                      color: activity.status.foregroundFor(context),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _fullText(activity.time),
-                style: TextStyle(color: context.textSub, fontSize: 11),
-              ),
-              const SizedBox(height: 8),
-              Tr(
-                activity.movement,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: context.textMain, fontSize: 12),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _t('Lihat detail kejadian', 'View event details'),
-                        style: TextStyle(
-                          color: context.accent,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _fullText(activity.time),
+              style: TextStyle(color: context.textSub, fontSize: 11),
+            ),
+            const SizedBox(height: 8),
+            Tr(
+              activity.movement,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: context.textMain, fontSize: 12),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              child: Divider(height: 1, color: context.lineColor),
+            ),
+            Material(
+              color: context.softBg,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: openDetails,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _t('Lihat detail kejadian', 'View event details'),
+                          style: TextStyle(
+                            color: context.accent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(Icons.arrow_forward,
-                        size: 17, color: context.accent),
-                  ],
+                      Icon(Icons.arrow_forward_rounded,
+                          size: 18, color: context.accent),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

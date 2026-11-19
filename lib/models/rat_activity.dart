@@ -13,6 +13,26 @@ enum RepelStatus {
   const RepelStatus(this.label, this.fg, this.bg);
 }
 
+extension RepelStatusTheme on RepelStatus {
+  Color foregroundFor(BuildContext context) {
+    if (Theme.of(context).brightness != Brightness.dark) return fg;
+    return switch (this) {
+      RepelStatus.berhasil => const Color(0xFF8BE09B),
+      RepelStatus.proses => const Color(0xFFFFD180),
+      RepelStatus.gagal => const Color(0xFFFF8A80),
+    };
+  }
+
+  Color backgroundFor(BuildContext context) {
+    if (Theme.of(context).brightness != Brightness.dark) return bg;
+    return switch (this) {
+      RepelStatus.berhasil => const Color(0xFF1D3828),
+      RepelStatus.proses => const Color(0xFF3A301F),
+      RepelStatus.gagal => const Color(0xFF3A2525),
+    };
+  }
+}
+
 /// Satu catatan aktivitas tikus.
 class RatActivity {
   final DateTime time;

@@ -139,16 +139,15 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                       '${rows.length} ${L.t('aktivitas ditemukan')}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textMuted)),
+                      style: TextStyle(fontSize: 12, color: context.textSub)),
                 ),
               ),
               Expanded(
                 child: rows.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Tr('Tidak ada riwayat yang cocok.',
                             style: TextStyle(
-                                fontSize: 12, color: AppColors.textMuted)),
+                                fontSize: 12, color: context.textSub)),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -166,24 +165,34 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   /// Header hijau bergelombang dengan judul halaman.
   Widget _header() {
+    final dark = context.isDark;
     return Stack(
       children: [
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(10, -6, 24, 2),
-            child: const ColoredBox(color: Color(0xFFE9FFEA)),
+            child: ColoredBox(
+                color: dark
+                    ? const Color(0xFF14231B)
+                    : const Color(0xFFE9FFEA)),
           ),
         ),
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(22, 4, 34, 12),
-            child: const ColoredBox(color: Color(0xFFC9FACB)),
+            child: ColoredBox(
+                color: dark
+                    ? const Color(0xFF193024)
+                    : const Color(0xFFC9FACB)),
           ),
         ),
         Positioned.fill(
           child: ClipPath(
             clipper: const _LayerWaveClipper(34, 16, 46, 24),
-            child: const ColoredBox(color: Color(0xFFA6F5A9)),
+            child: ColoredBox(
+                color: dark
+                    ? const Color(0xFF1F3D2D)
+                    : const Color(0xFFA6F5A9)),
           ),
         ),
         Container(
@@ -196,16 +205,15 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Warna tetap gelap karena latar header hijau muda.
                   Text(L.t('Riwayat'),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textDark)),
+                          color: context.textMain)),
                   const SizedBox(height: 2),
                   Text(L.t('Aktivitas tikus yang terdeteksi'),
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textMuted)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.textSub)),
                 ],
               ),
             ),
@@ -226,19 +234,18 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
             borderRadius: BorderRadius.circular(12),
             child: TextField(
               controller: _searchCtrl,
-              style: const TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 13, color: context.textMain),
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
                 hintText: L.t('Cari tanggal, lokasi, suara, status...'),
-                hintStyle: const TextStyle(
-                    fontSize: 12, color: AppColors.textMuted),
-                prefixIcon: const Icon(Icons.search,
-                    size: 20, color: AppColors.textMuted),
+                hintStyle: TextStyle(fontSize: 12, color: context.textSub),
+                prefixIcon: Icon(Icons.search,
+                    size: 20, color: context.textSub),
                 suffixIcon: _query.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(Icons.close,
-                            size: 18, color: AppColors.textMuted),
+                        icon: Icon(Icons.close,
+                            size: 18, color: context.textSub),
                         onPressed: () {
                           _searchCtrl.clear();
                           setState(() => _query = '');
@@ -254,18 +261,21 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
         Tooltip(
           message: L.t('Unduh dataset (CSV)'),
           child: Material(
-            color: AppColors.primary,
+            color: context.isDark ? AppPalette.darkAccent : AppColors.primary,
             elevation: 2,
             shadowColor: AppColors.shadow,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: _download,
-              child: const SizedBox(
+              child: SizedBox(
                 width: 46,
                 height: 46,
-                child: Icon(Icons.download_rounded,
-                    size: 22, color: Colors.white),
+                child: Icon(
+                  Icons.download_rounded,
+                  size: 22,
+                  color: context.isDark ? AppPalette.darkBg : Colors.white,
+                ),
               ),
             ),
           ),
@@ -329,8 +339,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.place_outlined,
-                      size: 16, color: AppColors.primary),
+                  Icon(Icons.place_outlined,
+                      size: 16, color: context.accent),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Tr(
@@ -349,7 +359,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: a.status.bg,
+                      color: a.status.backgroundFor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -357,7 +367,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: a.status.fg,
+                        color: a.status.foregroundFor(context),
                       ),
                     ),
                   ),
@@ -366,25 +376,25 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 12, color: AppColors.textMuted),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 12, color: context.textSub),
                   const SizedBox(width: 5),
                   Text(
                     _dateText(a.time),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMuted,
+                      color: context.textSub,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Icon(Icons.access_time,
-                      size: 12, color: AppColors.textMuted),
+                  Icon(Icons.access_time,
+                      size: 12, color: context.textSub),
                   const SizedBox(width: 5),
                   Text(
                     _timeText(a.time),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMuted,
+                      color: context.textSub,
                     ),
                   ),
                 ],
@@ -407,15 +417,14 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.textMuted),
+        Icon(icon, size: 16, color: context.textSub),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Tr(label,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textMuted)),
+                  style: TextStyle(fontSize: 11, color: context.textSub)),
               const SizedBox(height: 1),
               Tr(value,
                   style: const TextStyle(

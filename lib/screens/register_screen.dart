@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       errorStyle: const TextStyle(fontSize: 10, color: red, height: 1.2),
       errorMaxLines: 2,
       enabledBorder: outline(_borderColor),
-      focusedBorder: outline(AppColors.primary),
+      focusedBorder: outline(_titleColor),
       errorBorder: outline(red),
       focusedErrorBorder: outline(red),
     );

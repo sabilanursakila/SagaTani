@@ -156,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
       errorStyle: const TextStyle(fontSize: 10, color: red, height: 1.2),
       errorMaxLines: 2,
       enabledBorder: outline(_borderColor),
-      focusedBorder: outline(AppColors.primary),
+      focusedBorder: outline(_titleColor),
       errorBorder: outline(red),
       focusedErrorBorder: outline(red),
     );
@@ -340,7 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 24,
                                     child: Checkbox(
                                       value: _remember,
-                                      activeColor: AppColors.primary,
+                                      activeColor: _titleColor,
                                       side: BorderSide(color: _borderColor),
                                       onChanged: (v) => setState(
                                           () => _remember = v ?? false),

@@ -98,13 +98,13 @@ class ActivityDetailScreen extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: activity.status.bg,
+                      color: activity.status.backgroundFor(context),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       L.t(activity.status.label),
                       style: TextStyle(
-                        color: activity.status.fg,
+                        color: activity.status.foregroundFor(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),

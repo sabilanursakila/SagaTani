@@ -205,9 +205,9 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
               child: Container(
                 width: 10,
                 height: 10,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary,
+                  color: context.accent,
                 ),
               ),
             )

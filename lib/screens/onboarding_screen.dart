@@ -160,7 +160,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         : const Color(0xFFD6E8BF),
                   ),
                   child: Icon(p.fallbackIcon,
-                      size: 100, color: AppColors.primary),
+                      size: 100,
+                      color: _isDark ? AppPalette.darkAccent : AppColors.primary),
                 ),
               ),
             ),
@@ -257,8 +258,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ElevatedButton(
             onPressed: _goRegister,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor:
+                  _isDark ? AppPalette.darkAccent : AppColors.primary,
+              foregroundColor: _isDark ? AppPalette.darkBg : Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
             ),
@@ -277,7 +279,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               backgroundColor: _buttonBg,
               foregroundColor:
                   _isDark ? AppPalette.darkText : Colors.black,
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              side: BorderSide(
+                  color: _isDark ? AppPalette.darkAccent : AppColors.primary,
+                  width: 1.5),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24)),
             ),
