@@ -14,12 +14,52 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
+  late final AnimationController _introController;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _titleOpacity;
+  late final Animation<Offset> _titleOffset;
+  late final Animation<double> _taglineOpacity;
 
   @override
   void initState() {
     super.initState();
+    _introController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..forward();
+
+    _logoOpacity = CurvedAnimation(
+      parent: _introController,
+      curve: const Interval(0, 0.48, curve: Curves.easeOut),
+    );
+    _logoScale = Tween<double>(begin: 0.72, end: 1).animate(
+      CurvedAnimation(
+        parent: _introController,
+        curve: const Interval(0, 0.62, curve: Curves.easeOutBack),
+      ),
+    );
+    _titleOpacity = CurvedAnimation(
+      parent: _introController,
+      curve: const Interval(0.28, 0.78, curve: Curves.easeOut),
+    );
+    _titleOffset = Tween<Offset>(
+      begin: const Offset(0, 0.18),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _introController,
+        curve: const Interval(0.28, 0.82, curve: Curves.easeOutCubic),
+      ),
+    );
+    _taglineOpacity = CurvedAnimation(
+      parent: _introController,
+      curve: const Interval(0.55, 1, curve: Curves.easeOut),
+    );
+
     _timer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -31,6 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _introController.dispose();
     super.dispose();
   }
 
@@ -68,21 +109,36 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SagaLogo(size: 130),
+                  FadeTransition(
+                    opacity: _logoOpacity,
+                    child: ScaleTransition(
+                      scale: _logoScale,
+                      child: const SagaLogo(size: 130),
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  Text(
-                    L.t('SAGA TANI'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 3,
+                  FadeTransition(
+                    opacity: _titleOpacity,
+                    child: SlideTransition(
+                      position: _titleOffset,
+                      child: Text(
+                        L.t('SAGA TANI'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 3,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    L.t('Pertanian Lebih Aman Panen Lebih Maksimal'),
-                    style: const TextStyle(color: Colors.white, fontSize: 9),
+                  FadeTransition(
+                    opacity: _taglineOpacity,
+                    child: Text(
+                      L.t('Pertanian Lebih Aman Panen Lebih Maksimal'),
+                      style: const TextStyle(color: Colors.white, fontSize: 9),
+                    ),
                   ),
                 ],
               ),
@@ -90,14 +146,43 @@ class _SplashScreenState extends State<SplashScreen> {
             Positioned(
               left: 0,
               right: 0,
-              bottom: 36,
-              child: Text(
-                L.t('Loading...'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              bottom: 0,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 17,
+                          height: 17,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          L.t('Loading...'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            shadows: [
+                              Shadow(
+                                color: Color(0x88000000),
+                                blurRadius: 8,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

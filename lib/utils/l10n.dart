@@ -23,7 +23,17 @@ class L {
     'Beranda': 'Home',
     'Perangkat': 'Device',
     'Akun': 'Account',
+    'Scan': 'Scan',
+    'Scan Perangkat': 'Scan Device',
+    'Arahkan kamera ke QR perangkat': 'Point the camera at the device QR code',
+    'Pemindaian dimulai otomatis saat QR terdeteksi':
+        'Scanning starts automatically when a QR code is detected',
     'Pengaturan': 'Settings',
+    'Perangkat terdaftar': 'Registered devices',
+    'perangkat': 'device',
+    'Pantau perangkat Saga Tani': 'Monitor Saga Tani devices',
+    'Perangkat Repelan': 'Repellent device',
+    'Lihat detail perangkat': 'View device details',
 
     // Beranda
     'Petani Sawah Sejahtera': 'Prosperous Rice Farmer',
@@ -43,9 +53,15 @@ class L {
     'Daftar Suara': 'Sound List',
     'Riwayat Aktivitas': 'Activity History',
     'Belum ada aktivitas': 'No activity yet',
+    'Lihat detail kejadian': 'View event details',
 
     // Detail perangkat
     'Detail Perangkat': 'Device Details',
+    'Detail Aktivitas': 'Activity Details',
+    'Rincian kejadian': 'Event details',
+    'Lokasi': 'Location',
+    'Status pengusiran': 'Repelling status',
+    'Kembali': 'Back',
     'Suara yang Diputar': 'Sound Playing',
     'Suara Elang': 'Eagle Sound',
     'Volume Suara': 'Sound Volume',

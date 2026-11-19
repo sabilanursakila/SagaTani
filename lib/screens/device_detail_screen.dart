@@ -31,6 +31,7 @@ class DeviceDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.pageBg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -40,12 +41,13 @@ class DeviceDetailScreen extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    onPressed: onBack,
+                    onPressed:
+                        onBack ?? () => Navigator.of(context).maybePop(),
                     icon: const Icon(Icons.arrow_back),
                   ),
                   const Tr('Detail Perangkat',
                       style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -64,7 +66,8 @@ class DeviceDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.cardBg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.lineColor),
         boxShadow: _shadow,
       ),
       child: Row(
@@ -73,19 +76,18 @@ class DeviceDetailScreen extends StatelessWidget {
             width: 76,
             height: 76,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: _shadow,
+              color: context.softBg,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.home_outlined,
-                size: 44, color: AppColors.primary),
+            child: Icon(Icons.memory_outlined,
+                size: 38, color: context.accent),
           ),
           const Expanded(
             child: Column(
               children: [
                 Tr('R-001',
                     style:
-                        TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +96,7 @@ class DeviceDetailScreen extends StatelessWidget {
                     SizedBox(width: 4),
                     Tr('Online',
                         style:
-                            TextStyle(fontSize: 9, color: AppColors.online)),
+                            TextStyle(fontSize: 12, color: AppColors.online)),
                   ],
                 ),
               ],
@@ -112,7 +114,8 @@ class DeviceDetailScreen extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: context.cardBg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.lineColor),
         boxShadow: _shadow,
       ),
       child: Row(
@@ -125,13 +128,13 @@ class DeviceDetailScreen extends StatelessWidget {
               children: [
                 Tr(item.title,
                     style: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w600)),
+                        fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Tr(item.value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: AppColors.link)),
               ],

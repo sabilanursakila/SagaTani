@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   InputDecoration _decoration(String hint, IconData icon, {Widget? suffix}) {
     OutlineInputBorder outline(Color color) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: color),
         );
     const red = Color(0xFFC62828);
@@ -400,7 +400,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     side: BorderSide(color: _borderColor),
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(6)),
+                                            BorderRadius.circular(12)),
                                   ),
                                   icon: _googleLoading
                                       ? const SizedBox(

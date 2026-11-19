@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   InputDecoration _decoration(String hint, IconData icon, {Widget? suffix}) {
     OutlineInputBorder outline(Color color) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: color),
         );
     const red = Color(0xFFC62828);

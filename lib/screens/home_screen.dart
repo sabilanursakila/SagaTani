@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/app_settings.dart';
+import '../models/rat_activity.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
-import 'sound_selection_screen.dart';
-import '../widgets/tr.dart';
-import '../models/app_settings.dart';
 import '../utils/l10n.dart';
+import '../widgets/tr.dart';
+import 'activity_detail_screen.dart';
+import 'sound_selection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onOpenDevice;
@@ -16,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _mode = 1; // 0 = Otomatis, 1 = Manual
+  int _mode = 0; // 0 = Otomatis (default), 1 = Manual
   DateTime? _manualTime; // jadwal yang diatur lewat pop up Manual
 
   static const _cardShadow = [
@@ -62,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.pageBg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -69,22 +72,19 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _header(),
+              const SizedBox(height: 18),
+              _deviceCard(),
               const SizedBox(height: 20),
-              GestureDetector(
-                onTap: widget.onOpenDevice,
-                child: _deviceCard(),
-              ),
-              const SizedBox(height: 16),
               _sectionTitle('Status Sistem'),
               _systemStatus(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _sectionTitle('Mode Operasi'),
               _modeSelector(),
               _manualSummary(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _sectionTitle('Pemilihan Suara'),
               _soundPicker(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _sectionTitle('Riwayat Aktivitas'),
               _history(),
             ],
@@ -100,13 +100,18 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         final user = UserSession.instance;
         final dark = Theme.of(context).brightness == Brightness.dark;
-        const greetStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.w600);
+        final greetStyle = TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: context.textMain,
+        );
         return Row(
           children: [
-            const CircleAvatar(
-              radius: 30,
-              backgroundColor: Color(0xFFD9D9D9),
-              child: Icon(Icons.person, size: 44, color: Colors.black),
+            CircleAvatar(
+              radius: 27,
+              backgroundColor: context.softBg,
+              child: Icon(Icons.person_outline,
+                  size: 30, color: context.accent),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -116,18 +121,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('${L.t('Halo')}, ${user.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          dark ? AppPalette.adaptTextStyle(greetStyle) : greetStyle),
+                      style: dark
+                          ? AppPalette.adaptTextStyle(greetStyle)
+                          : greetStyle),
                   const SizedBox(height: 2),
-                  const Tr('Petani Sawah Sejahtera',
-                      style:
-                          TextStyle(fontSize: 9, color: AppColors.textMuted)),
+                  Tr(
+                    'Petani Sawah Sejahtera',
+                    style: TextStyle(fontSize: 11, color: context.textSub),
+                  ),
                 ],
               ),
             ),
             IconButton(
               onPressed: () {}, // TODO: notifikasi
-              icon: const Icon(Icons.notifications_none, size: 28),
+              tooltip: L.t('Notifikasi'),
+              style: IconButton.styleFrom(
+                backgroundColor: context.softBg,
+                foregroundColor: context.accent,
+                fixedSize: const Size(46, 46),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              icon: const Icon(Icons.notifications_none, size: 22),
             ),
           ],
         );
@@ -136,45 +152,129 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _deviceCard() {
+    const radius = BorderRadius.all(Radius.circular(18));
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: radius,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0B5B3B), Color(0xFF247B53)],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x220B5B3B),
+            blurRadius: 16,
+            offset: Offset(0, 7),
+          ),
+        ],
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.home_outlined, size: 48, color: Color(0x66FFFFFF)),
-          const SizedBox(width: 24),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Tr('Perangkat Aktif',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600)),
-                Tr('R-001',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600)),
-                SizedBox(height: 4),
-                Row(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onOpenDevice,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -22,
+                top: -34,
+                child: Container(
+                  width: 118,
+                  height: 118,
+                  decoration: const BoxDecoration(
+                    color: Color(0x14FFFFFF),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 47,
+                bottom: -55,
+                child: Container(
+                  width: 105,
+                  height: 105,
+                  decoration: const BoxDecoration(
+                    color: Color(0x0DFFFFFF),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+                child: Row(
                   children: [
-                    Icon(Icons.circle, size: 6, color: Color(0xFF4CD964)),
-                    SizedBox(width: 4),
-                    Tr('Online',
-                        style:
-                            TextStyle(color: Color(0xFF4CD964), fontSize: 9)),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: const Color(0x20FFFFFF),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: const Color(0x26FFFFFF)),
+                      ),
+                      child: const Icon(Icons.memory_outlined,
+                          size: 28, color: Colors.white),
+                    ),
+                    const SizedBox(width: 13),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Tr(
+                            'Perangkat Aktif',
+                            style: TextStyle(
+                              color: Color(0xDFFFFFFF),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Tr(
+                            'R-001',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(Icons.circle,
+                                  size: 7, color: Color(0xFF8BE09B)),
+                              SizedBox(width: 5),
+                              Tr(
+                                'Online',
+                                style: TextStyle(
+                                  color: Color(0xFFB9F1C2),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(
+                        color: Color(0x1AFFFFFF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_forward,
+                          size: 17, color: Colors.white),
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Icon(Icons.chevron_right, color: Colors.white),
-        ],
+        ),
       ),
     );
   }
@@ -182,16 +282,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _sectionTitle(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Tr(text,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       );
 
   /// Tiga status dalam satu kartu, dipisah garis tegak.
   Widget _systemStatus() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 15),
       decoration: BoxDecoration(
         color: context.cardBg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.lineColor),
         boxShadow: _cardShadow,
       ),
       child: IntrinsicHeight(
@@ -230,34 +331,61 @@ class _HomeScreenState extends State<HomeScreen> {
     Widget item(int index, IconData icon, String label) {
       final selected = _mode == index;
       return Expanded(
-        child: GestureDetector(
-          onTap: () {
-            if (index == 1) {
-              _openManualDialog();
-            } else {
-              setState(() => _mode = index);
-            }
-          },
-          child: Container(
-            height: 58,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.primary : context.cardBg,
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: _cardShadow,
-            ),
-            child: Row(
-              children: [
-                Icon(icon,
-                    size: 20,
-                    color: selected ? Colors.white : context.iconColor),
-                const SizedBox(width: 14),
-                Tr(label,
-                    style: TextStyle(
-                        fontSize: 10,
+        child: Material(
+          color: selected ? AppColors.primary : context.cardBg,
+          borderRadius: BorderRadius.circular(15),
+          elevation: selected ? 2 : 0,
+          shadowColor: AppColors.shadow,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(15),
+            onTap: () {
+              if (index == 1) {
+                _openManualDialog();
+              } else {
+                setState(() => _mode = index);
+              }
+            },
+            child: Container(
+              height: 62,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: selected ? Colors.transparent : context.lineColor,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color:
+                          selected ? const Color(0x24FFFFFF) : context.softBg,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 19,
+                      color: selected ? Colors.white : context.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Tr(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : Colors.black)),
-              ],
+                        color: selected ? Colors.white : context.textMain,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -286,9 +414,9 @@ class _HomeScreenState extends State<HomeScreen> {
             color: context.cardBg,
             elevation: 2,
             shadowColor: AppColors.shadow,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(14),
             child: InkWell(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(14),
               onTap: _openManualDialog,
               child: Padding(
                 padding:
@@ -304,11 +432,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(_t('Jadwal manual', 'Manual schedule'),
                               style: const TextStyle(
-                                  fontSize: 9, color: AppColors.textMuted)),
+                                  fontSize: 11, color: AppColors.textMuted)),
                           const SizedBox(height: 2),
                           Text(_fullText(t),
                               style: const TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.w600)),
+                                  fontSize: 12, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -394,7 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _t('Waktu sudah lewat, pilih waktu yang akan datang.',
                           'That time has passed, choose a future time.'),
                       style: const TextStyle(
-                          fontSize: 10, color: Color(0xFFC62828)),
+                          fontSize: 11, color: Color(0xFFC62828)),
                     ),
                   ],
                 ],
@@ -449,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(label,
                       style: const TextStyle(
-                          fontSize: 9, color: AppColors.textMuted)),
+                          fontSize: 11, color: AppColors.textMuted)),
                   const SizedBox(height: 1),
                   Text(value,
                       style: const TextStyle(
@@ -471,14 +599,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Text(label,
-              style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 2),
           Text(value,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style:
-                  const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -487,26 +615,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _soundPicker() {
     return Material(
       color: context.cardBg,
-      borderRadius: BorderRadius.circular(6),
-      elevation: 3,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 1,
       shadowColor: AppColors.shadow,
       child: InkWell(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const SoundSelectionScreen()),
         ),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              Icon(Icons.volume_up_outlined, size: 20),
-              SizedBox(width: 14),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: context.softBg,
+                  borderRadius: const BorderRadius.all(Radius.circular(13)),
+                ),
+                child: Icon(
+                  Icons.volume_up_outlined,
+                  size: 21,
+                  color: context.accent,
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Tr('Daftar Suara',
-                    style:
-                        TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
               ),
-              Icon(Icons.chevron_right, size: 20),
+              Icon(Icons.arrow_forward, size: 17, color: context.textSub),
             ],
           ),
         ),
@@ -514,19 +654,94 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Kartu riwayat aktivitas (daftar aktivitas akan tampil di sini).
+  /// Ringkasan kejadian terbaru; detailnya dibuka sebagai halaman terpisah.
   Widget _history() {
-    return Container(
-      width: double.infinity,
-      height: 110,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: _cardShadow,
+    final activity = sampleRatActivities.first;
+    return Material(
+      color: context.cardBg,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 2,
+      shadowColor: AppColors.shadow,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ActivityDetailScreen(activity: activity),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.place_outlined, size: 17, color: context.accent),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Tr(
+                      activity.location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: activity.status.bg,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      L.t(activity.status.label),
+                      style: TextStyle(
+                        color: activity.status.fg,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _fullText(activity.time),
+                style: TextStyle(color: context.textSub, fontSize: 11),
+              ),
+              const SizedBox(height: 8),
+              Tr(
+                activity.movement,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: context.textMain, fontSize: 12),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _t('Lihat detail kejadian', 'View event details'),
+                        style: TextStyle(
+                          color: context.accent,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward,
+                        size: 17, color: context.accent),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: const Tr('Belum ada aktivitas',
-          style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
     );
   }
 }
@@ -549,14 +764,33 @@ class _StatusItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 26),
-        const SizedBox(height: 4),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: context.softBg,
+          ),
+          child: Icon(
+            icon,
+            size: 21,
+            color: active ? AppColors.online : context.accent,
+          ),
+        ),
+        const SizedBox(height: 7),
         Tr(label,
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600)),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: context.textSub,
+            )),
+        const SizedBox(height: 2),
         Tr(value,
             style: TextStyle(
-                fontSize: 8,
-                color: active ? AppColors.online : AppColors.textDark)),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: active ? AppColors.online : context.textMain,
+            )),
       ],
     );
   }

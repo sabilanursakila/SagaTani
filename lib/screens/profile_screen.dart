@@ -8,12 +8,11 @@ import '../widgets/tr.dart';
 const _hijauMuda = Color(0xFF1B8F5A);
 const _hijauTua = Color(0xFF0B5F3F);
 
-/// Tab Akun: ringkasan data pengguna dengan tampilan header hijau.
+/// Halaman Informasi Akun dengan tampilan header hijau.
 /// Tombol "Edit Profil" membuka halaman [EditProfileScreen].
-/// Navigasi bawah dipegang oleh MainShell, jadi tidak ada di sini.
+/// Halaman ini dibuka dari menu Pengaturan.
 class ProfileScreen extends StatelessWidget {
-  /// Dipanggil saat panah kembali ditekan (di MainShell: kembali
-  /// ke halaman sebelumnya).
+  /// Opsional untuk mengatur tujuan tombol kembali.
   final VoidCallback? onBack;
   const ProfileScreen({super.key, this.onBack});
 

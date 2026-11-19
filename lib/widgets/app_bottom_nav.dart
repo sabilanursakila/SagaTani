@@ -10,8 +10,7 @@ class _NavItem {
   const _NavItem(this.icon, this.label);
 }
 
-/// Menu navigasi bawah: 4 tab (Beranda, Perangkat, Akun, Pengaturan)
-/// ditambah tombol Scan di tengah yang membuka kamera pemindai.
+/// Menu navigasi bawah dengan tombol Scan yang menonjol di tengah.
 /// Warna latar, ikon, dan teks menyesuaikan tema terang / gelap.
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -30,7 +29,7 @@ class AppBottomNav extends StatelessWidget {
   static const _items = [
     _NavItem(Icons.home_outlined, 'Beranda'),
     _NavItem(Icons.tune, 'Perangkat'),
-    _NavItem(Icons.person_outline, 'Akun'),
+    _NavItem(Icons.history, 'Riwayat'),
     _NavItem(Icons.settings_outlined, 'Pengaturan'),
   ];
 
@@ -81,15 +80,13 @@ class AppBottomNav extends StatelessWidget {
         final labelColor = dark ? Colors.white70 : Colors.black87;
         final shadowColor = dark ? const Color(0x66000000) : AppColors.shadow;
 
-        // Susunan: Beranda, Perangkat, [Scan], Akun, Pengaturan
+        // Susunan: Beranda, Perangkat, [Scan], Riwayat, Pengaturan
         final children = <Widget>[];
         for (var i = 0; i < _items.length; i++) {
           children.add(_buildTab(i, iconColor, labelColor));
           if (i == 1 && onScanTap != null) {
             children.add(_ScanNavButton(
               onTap: onScanTap!,
-              iconColor: iconColor,
-              labelColor: labelColor,
             ));
           }
         }
@@ -119,17 +116,11 @@ class AppBottomNav extends StatelessWidget {
   }
 }
 
-/// Tombol Scan: polos saat diam, berlatar hijau hanya ketika sedang ditekan.
+/// Tombol Scan selalu menonjol di tengah navigasi.
 class _ScanNavButton extends StatefulWidget {
   final VoidCallback onTap;
-  final Color iconColor;
-  final Color labelColor;
 
-  const _ScanNavButton({
-    required this.onTap,
-    required this.iconColor,
-    required this.labelColor,
-  });
+  const _ScanNavButton({required this.onTap});
 
   @override
   State<_ScanNavButton> createState() => _ScanNavButtonState();
@@ -138,45 +129,57 @@ class _ScanNavButton extends StatefulWidget {
 class _ScanNavButtonState extends State<_ScanNavButton> {
   bool _pressed = false;
 
-  void _setPressed(bool value) => setState(() => _pressed = value);
-
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => _setPressed(true),
-        onTapUp: (_) => _setPressed(false),
-        onTapCancel: () => _setPressed(false),
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
         onTap: widget.onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _pressed ? AppColors.online : Colors.transparent,
+        child: Transform.translate(
+          offset: const Offset(0, -7),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: _pressed ? 0.94 : 1,
+                duration: const Duration(milliseconds: 120),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.online,
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x330B5B3B),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    size: 25,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-              child: Icon(
-                Icons.camera_alt_outlined,
-                size: 24,
-                color: _pressed ? Colors.white : widget.iconColor,
+              const SizedBox(height: 1),
+              Text(
+                L.t('Scan'),
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.online,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              L.t('Scan'),
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: _pressed ? FontWeight.w700 : FontWeight.w500,
-                color: _pressed ? AppColors.online : widget.labelColor,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

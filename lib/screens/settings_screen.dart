@@ -88,8 +88,7 @@ const _dialogShape = RoundedRectangleBorder(
 // =============================================================================
 
 class SettingsScreen extends StatelessWidget {
-  /// Dipanggil saat menu "Informasi Akun" ditekan
-  /// (di MainShell: membuka tab Akun).
+  /// Dipanggil saat menu "Informasi Akun" ditekan.
   final VoidCallback? onOpenAccount;
 
   const SettingsScreen({super.key, this.onOpenAccount});

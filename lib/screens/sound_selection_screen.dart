@@ -53,6 +53,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.pageBg,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _settings,
@@ -67,7 +68,7 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
                   ),
                   const Text('Pemilihan Suara',
                       style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -87,16 +88,16 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: AppColors.primary, width: 1.5),
+            bottom: BorderSide(color: context.accent, width: 1.5),
           ),
         ),
-        child: const Text('Daftar suara',
+        child: Tr('Daftar suara',
             style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary)),
+                color: context.accent)),
       ),
     );
   }
@@ -109,11 +110,16 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: selected ? context.softBg : context.cardBg,
-        borderRadius: BorderRadius.circular(6),
-        elevation: 3,
+        elevation: 1,
         shadowColor: AppColors.shadow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(
+              color: selected ? context.accent : context.lineColor,
+              width: selected ? 1.2 : 1),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(14),
           onTap: () => _settings.select(i),
           child: Padding(
             padding: const EdgeInsets.all(10),
@@ -126,12 +132,14 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(s.name,
-                          style: const TextStyle(
-                              fontSize: 11, fontWeight: FontWeight.w600)),
+                          style: TextStyle(
+                              color: context.textMain,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
                       const SizedBox(height: 1),
                       Text(s.note,
-                          style: const TextStyle(
-                              fontSize: 8, color: AppColors.textMuted)),
+                          style: TextStyle(
+                              color: context.textSub, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -162,14 +170,14 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
       height: 46,
       decoration: BoxDecoration(
         color: context.cardBg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(11),
         boxShadow: const [
           BoxShadow(
               color: AppColors.shadow, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(11),
         child: Image.asset(
           s.image,
           fit: BoxFit.cover,
@@ -189,7 +197,8 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
         shape: BoxShape.circle,
         border: Border.all(
           color: selected ? context.accent : context.textMain,
-            width: 1.5),
+          width: 1.5,
+        ),
       ),
       child: selected
           ? Center(
@@ -214,13 +223,13 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
       elevation: 3,
       shadowColor: AppColors.shadow,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(14),
         side: on
             ? const BorderSide(color: AppColors.online, width: 1.5)
             : BorderSide.none,
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(14),
         onTap: _pickRandom,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -229,28 +238,34 @@ class _SoundSelectionScreenState extends State<SoundSelectionScreen> {
             children: [
               const IconBadge(icon: Icons.shuffle, radius: 16),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Mode Acak',
+                    Tr('Mode Acak',
                         style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 4),
-                    Text(
+                          color: context.textMain,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        )),
+                    const SizedBox(height: 4),
+                    Tr(
                       'Sistem akan memutar suara secara acak berdasarkan aturan yang telah ditentukan.',
                       style: TextStyle(
-                          fontSize: 8, height: 1.5, color: AppColors.textDark),
+                        fontSize: 11,
+                        height: 1.5,
+                        color: context.textSub,
+                      ),
                     ),
                   ],
                 ),
               ),
-                 if (on)
-                 Padding(
+              if (on)
+                Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: Icon(Icons.check_circle,
-                  size: 20, color: context.accent),
-                  ),
+                      size: 20, color: context.accent),
+                ),
             ],
           ),
         ),
