@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../models/app_settings.dart';
 import '../models/user_session.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/google_auth_service.dart';
 import '../utils/l10n.dart';
@@ -27,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _remember = true;
   bool _obscure = true;
   bool _googleLoading = false;
+  bool _loading = false;
 
   // Warna gradasi header mode terang (gelap -> terang)
   static const _dark = Color(0xFF0B5B3B);
@@ -71,16 +73,25 @@ class _LoginScreenState extends State<LoginScreen> {
       ..showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  void _login() {
+  Future<void> _login() async {
     // Berhenti di sini jika ada isian yang belum valid (pesan error tampil).
     if (!_formKey.currentState!.validate()) return;
+    if (_loading) return;
     FocusScope.of(context).unfocus();
+    setState(() => _loading = true);
 
-    UserSession.instance.login(_emailCtrl.text);
-    // TODO: sambungkan ke autentikasi (API / Firebase).
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainShell()),
-    );
+    try {
+      await AuthService.instance.login(_emailCtrl.text, _passCtrl.text);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainShell()),
+      );
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      _snack(e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _loginWithGoogle() async {

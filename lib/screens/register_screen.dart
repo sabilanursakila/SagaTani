@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/auth_service.dart';
 import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
@@ -26,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
   bool _obscure = true;
+  bool _loading = false;
   bool _obscureConfirm = true;
 
   // Warna gradasi header mode terang (gelap -> terang)
@@ -65,19 +67,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Menerjemahkan pesan error dari Validators sesuai bahasa terpilih.
   String? _tr(String? message) => message == null ? null : L.t(message);
 
-  void _register() {
+  Future<void> _register() async {
     // Berhenti di sini jika ada isian yang belum valid (pesan error tampil).
     if (!_formKey.currentState!.validate()) return;
+    if (_loading) return;
     FocusScope.of(context).unfocus();
+    setState(() => _loading = true);
 
-    UserSession.instance.register(
-      name: _nameCtrl.text,
-      contact: _contactCtrl.text,
-    );
-    // TODO: sambungkan ke pendaftaran (API / Firebase).
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainShell()),
-    );
+    try {
+      await AuthService.instance.register(
+        name: _nameCtrl.text,
+        contact: _contactCtrl.text,
+        password: _passCtrl.text,
+      );
+      // Keluarkan sesi dulu supaya pengguna masuk lewat halaman Login.
+      await AuthService.instance.signOut();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(L.t('Pendaftaran berhasil, silakan masuk'))),
+      );
+    } on AuthFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   void _goToLogin() {

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "562764877297",
+    "firebase_url": "https://sagatani-3091d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "sagatani-3091d",
+    "storage_bucket": "sagatani-3091d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562764877297:android:4e5680845ea320c9a88850",
+        "android_client_info": {
+          "package_name": "com.example.saga_tani"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1w3og9iGqoCsDBsSw6lVqcSmn0A5mv4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
