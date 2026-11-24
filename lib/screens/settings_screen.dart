@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart'; 
 import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
@@ -209,6 +210,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(ctx).pop();
               UserSession.instance.logout();
+              AuthService.instance.signOut();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,

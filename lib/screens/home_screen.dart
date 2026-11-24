@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_settings.dart';
+import '../models/device_state.dart';
 import '../models/rat_activity.dart';
 import '../models/user_session.dart';
 import '../theme/app_theme.dart';
@@ -21,6 +22,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _mode = 0; // 0 = Otomatis (default), 1 = Manual
   DateTime? _manualTime; // jadwal yang diatur lewat pop up Manual
+
+  DeviceState get _dev => DeviceState.instance;
 
   static const _cardShadow = [
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
@@ -70,6 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: DeviceState.instance,
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pageBg,
       body: SafeArea(
@@ -225,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 28, color: Colors.white),
                     ),
                     const SizedBox(width: 13),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -240,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           SizedBox(height: 2),
                           Tr(
-                            'R-001',
+                            DeviceState.instance.deviceId,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -251,10 +261,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               Icon(Icons.circle,
-                                  size: 7, color: Color(0xFF8BE09B)),
+                                  size: 7,
+                                  color: DeviceState.instance.online
+                                      ? const Color(0xFF8BE09B)
+                                      : const Color(0xFFBDBDBD)),
                               SizedBox(width: 5),
                               Tr(
-                                'Online',
+                                DeviceState.instance.online ? 'Online' : 'Offline',
                                 style: TextStyle(
                                   color: Color(0xFFB9F1C2),
                                   fontSize: 11,
@@ -305,26 +318,28 @@ class _HomeScreenState extends State<HomeScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            const Expanded(
+            Expanded(
               child: _StatusItem(
                   icon: Icons.sensors,
                   label: 'Sensor',
-                  value: 'Aktif',
-                  active: true),
+                  value: _dev.sensorAktif ? 'Aktif' : 'Nonaktif',
+                  active: _dev.sensorAktif),
             ),
             VerticalDivider(width: 1, thickness: 1, color: context.lineColor),
-            const Expanded(
+            Expanded(
               child: _StatusItem(
                   icon: Icons.volume_up_outlined,
                   label: 'Suara',
-                  value: 'Berjalan'),
+                  value: _dev.suaraBerjalan ? 'Berjalan' : 'Siaga',
+                  active: _dev.suaraBerjalan),
             ),
             VerticalDivider(width: 1, thickness: 1, color: context.lineColor),
-            const Expanded(
+            Expanded(
               child: _StatusItem(
                   icon: Icons.phonelink_ring,
                   label: 'Status',
-                  value: 'Terhubung'),
+                  value: _dev.online ? 'Terhubung' : 'Terputus',
+                  active: _dev.online),
             ),
           ],
         ),

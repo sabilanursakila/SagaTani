@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/device_state.dart';
 import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
 import '../widgets/tr.dart';
@@ -179,6 +180,12 @@ class DeviceListScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => _hubungkanPerangkat(context),
+              icon: const Icon(Icons.link, size: 18),
+              label: Text(L.t('Hubungkan perangkat dengan kode')),
+            ),
           ],
         ),
       ),
@@ -227,4 +234,43 @@ class _DeviceStat extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dialog untuk memasukkan kode perangkat (info/kodePair di Firebase).
+Future<void> _hubungkanPerangkat(BuildContext context) async {
+  final ctrl = TextEditingController();
+  final kode = await showDialog<String>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(L.t('Hubungkan Perangkat'),
+          style: const TextStyle(fontSize: 16)),
+      content: TextField(
+        controller: ctrl,
+        autofocus: true,
+        decoration: InputDecoration(hintText: L.t('Masukkan kode perangkat')),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: Text(L.t('Batal')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+          child: Text(L.t('Hubungkan')),
+        ),
+      ],
+    ),
+  );
+  if (kode == null || kode.isEmpty) return;
+
+  final err = await DeviceState.instance.gabung(kode);
+  if (!context.mounted) return;
+  final pesan = err == null
+      ? 'Berhasil terhubung ke perangkat ${DeviceState.instance.deviceId}.'
+      : (err == 'kode_salah'
+          ? 'Kode perangkat tidak valid.'
+          : 'Gagal menghubungkan perangkat.');
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(pesan)));
 }

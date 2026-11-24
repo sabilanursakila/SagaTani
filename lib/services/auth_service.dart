@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/device_state.dart';
 import '../models/app_settings.dart';
 import '../models/user_session.dart';
 import 'firebase_service.dart';
@@ -123,7 +124,19 @@ class AuthService {
         (kontak.contains('@') ? kontak.split('@').first : kontak);
 
     UserSession.instance.register(name: nama, contact: kontak);
+    await DeviceState.instance.start();
   }
 
-  Future<void> signOut() => _auth.signOut();
+  /// Dipanggil saat aplikasi dibuka: true jika masih ada sesi login.
+  Future<bool> restoreSession() async {
+    if (_auth.currentUser == null) return false;
+    try {
+      await _muatProfil().timeout(const Duration(seconds: 10));
+    } catch (_) {}
+    return true;
+  }
+  Future<void> signOut() async {
+    await DeviceState.instance.stop();
+    await _auth.signOut();
+  }
 }

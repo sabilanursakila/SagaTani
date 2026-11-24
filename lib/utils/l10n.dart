@@ -248,5 +248,19 @@ class L {
         'Password must contain letters and numbers',
     'Ulangi sandi wajib diisi': 'Please repeat the password',
     'Sandi tidak sama': 'Passwords do not match',
+
+    // Status perangkat (Beranda)
+    'Nonaktif': 'Inactive',
+    'Siaga': 'Standby',
+    'Terputus': 'Disconnected',
+    'Offline': 'Offline',
+
+    // Pendaftaran dan hubungkan perangkat
+    'Pendaftaran berhasil, silakan masuk':
+        'Registration successful, please log in',
+    'Hubungkan Perangkat': 'Connect Device',
+    'Masukkan kode perangkat': 'Enter device code',
+    'Hubungkan': 'Connect',
+    'Hubungkan perangkat dengan kode': 'Connect device with code',
   };
 }

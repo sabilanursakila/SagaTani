@@ -1,3 +1,5 @@
+import '../services/auth_service.dart';
+import 'main_shell.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -60,10 +62,15 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.55, 1, curve: Curves.easeOut),
     );
 
-    _timer = Timer(const Duration(seconds: 3), () {
+    _timer = Timer(const Duration(seconds: 3), () async {
+      // Jika masih ada sesi login, langsung ke Beranda.
+      final loggedIn = await AuthService.instance.restoreSession();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        MaterialPageRoute(
+          builder: (_) =>
+              loggedIn ? const MainShell() : const OnboardingScreen(),
+        ),
       );
     });
   }
