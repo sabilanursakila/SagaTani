@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../models/activity_store.dart';
 import '../models/app_settings.dart';
 import '../models/rat_activity.dart';
 import '../theme/app_theme.dart';
@@ -47,7 +48,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   List<RatActivity> get _filtered {
     final q = _query.trim().toLowerCase();
-    return sampleRatActivities.where((a) {
+    return ActivityStore.instance.items.where((a) {
       if (_statusFilter != null && a.status != _statusFilter) return false;
       if (q.isEmpty) return true;
       // Dicari pada teks yang sedang tampil (sesuai bahasa terpilih).
@@ -119,7 +120,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
   Widget build(BuildContext context) {
     // Dibangun ulang otomatis saat bahasa / tema diganti.
     return AnimatedBuilder(
-      animation: AppSettings.instance,
+      animation:
+          Listenable.merge([AppSettings.instance, ActivityStore.instance]),
       builder: (context, _) {
         final rows = _filtered;
         return Scaffold(

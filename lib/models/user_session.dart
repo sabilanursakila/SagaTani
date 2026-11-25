@@ -7,6 +7,10 @@ class UserSession extends ChangeNotifier {
   UserSession._();
   static final UserSession instance = UserSession._();
 
+  /// Dipasang oleh AuthService: menyimpan profil yang diubah ke Firebase.
+  static void Function(String name, String email, String phone)?
+      onProfileSaved;
+
   String _name = '';
   String _contact = '';
   String _email = '';
@@ -65,6 +69,7 @@ class UserSession extends ChangeNotifier {
     _phone = p;
     _contact = e.isNotEmpty ? e : p;
     notifyListeners();
+    onProfileSaved?.call(_name, _email, _phone);
   }
 
   /// Dipanggil saat keluar dari akun.

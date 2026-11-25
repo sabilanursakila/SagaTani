@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/activity_store.dart';
 import '../models/app_settings.dart';
 import '../models/device_state.dart';
 import '../models/rat_activity.dart';
@@ -20,10 +21,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _mode = 0; // 0 = Otomatis (default), 1 = Manual
-  DateTime? _manualTime; // jadwal yang diatur lewat pop up Manual
-
   DeviceState get _dev => DeviceState.instance;
+
+  // Mode & jadwal diambil dari Firebase (devices/R-001/control).
+  int get _mode => _dev.isManual ? 1 : 0; // 0 = Otomatis, 1 = Manual
+  DateTime? get _manualTime => _dev.jadwalManual;
 
   static const _cardShadow = [
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
@@ -74,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: DeviceState.instance,
+      animation:
+          Listenable.merge([DeviceState.instance, ActivityStore.instance]),
       builder: (context, _) => _buildPage(context),
     );
   }
@@ -98,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _sectionTitle('Mode Operasi'),
               _modeSelector(),
               _manualSummary(),
+              _manualPlay(),
               const SizedBox(height: 20),
               _sectionTitle('Pemilihan Suara'),
               _soundPicker(),
@@ -367,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (index == 1) {
                 _openManualDialog();
               } else {
-                setState(() => _mode = index);
+                _dev.setMode('otomatis');
               }
             },
             child: Container(
@@ -481,6 +485,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Mode Manual: tombol untuk memutar / menghentikan suara dari aplikasi.
+  Widget _manualPlay() {
+    if (_mode != 1) return const SizedBox.shrink();
+    final on = _dev.putarManual;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Material(
+        color: context.cardBg,
+        elevation: 2,
+        shadowColor: AppColors.shadow,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _dev.setPutarManual(!on),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  on ? Icons.stop_circle_outlined : Icons.play_circle_outline,
+                  size: 22,
+                  color: context.accent,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    on
+                        ? _t('Hentikan suara', 'Stop sound')
+                        : _t('Putar suara sekarang', 'Play sound now'),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ---------- Pop up jadwal manual ----------
 
   Future<void> _openManualDialog() async {
@@ -576,11 +621,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        _mode = 1;
-        _manualTime = result;
-        // TODO: kirim jadwal manual (_manualTime) ke perangkat.
-      });
+      _dev.setMode('manual');
+      _dev.setJadwalManual(result);
     }
   }
 
@@ -683,9 +725,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _emptyHistory() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.lineColor),
+      ),
+      child: Tr('Belum ada aktivitas',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: context.textSub)),
+    );
+  }
+
   /// Ringkasan kejadian terbaru; detailnya dibuka sebagai halaman terpisah.
   Widget _history() {
-    final activity = sampleRatActivities.first;
+    final items = ActivityStore.instance.items;
+    if (items.isEmpty) return _emptyHistory();
+    final activity = items.first;
     void openDetails() => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ActivityDetailScreen(activity: activity),

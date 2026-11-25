@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/activity_store.dart';
+import '../models/device_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/tr.dart';
@@ -20,16 +22,27 @@ class DeviceDetailScreen extends StatelessWidget {
     BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 3)),
   ];
 
-  static const _items = [
-    _InfoItem(Icons.sensors, 'Sensor', 'Aktif'),
-    _InfoItem(Icons.volume_up_outlined, 'Suara yang Diputar', 'Suara Elang'),
-    _InfoItem(Icons.volume_down_outlined, 'Volume Suara', 'Volume 75%'),
-    _InfoItem(Icons.battery_full, 'Baterai', '87 %'),
-    _InfoItem(Icons.history, 'Waktu Operasi Terakhir', '24 sep 2026 09:25'),
-  ];
+  List<_InfoItem> _items() {
+    final d = DeviceState.instance;
+    return [
+      _InfoItem(Icons.sensors, 'Sensor', d.sensorAktif ? 'Aktif' : 'Nonaktif'),
+      _InfoItem(Icons.volume_up_outlined, 'Suara yang Diputar', d.suaraText),
+      _InfoItem(Icons.volume_down_outlined, 'Volume Suara', d.volumeText),
+      _InfoItem(Icons.battery_full, 'Baterai', d.bateraiLabel),
+      _InfoItem(Icons.history, 'Waktu Operasi Terakhir', d.operasiText),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation:
+          Listenable.merge([DeviceState.instance, ActivityStore.instance]),
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pageBg,
       body: SafeArea(
@@ -53,7 +66,7 @@ class DeviceDetailScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _deviceHeader(context),
               const SizedBox(height: 20),
-              for (final item in _items) _infoCard(context, item),
+              for (final item in _items()) _infoCard(context, item),
             ],
           ),
         ),
@@ -82,21 +95,28 @@ class DeviceDetailScreen extends StatelessWidget {
             child: Icon(Icons.memory_outlined,
                 size: 38, color: context.accent),
           ),
-          const Expanded(
+          Expanded(
             child: Column(
               children: [
-                Tr('R-001',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                SizedBox(height: 4),
+                Tr(DeviceState.instance.deviceId,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.circle, size: 6, color: AppColors.online),
-                    SizedBox(width: 4),
-                    Tr('Online',
-                        style:
-                            TextStyle(fontSize: 12, color: AppColors.online)),
+                    Icon(Icons.circle,
+                        size: 6,
+                        color: DeviceState.instance.online
+                            ? AppColors.online
+                            : Colors.grey),
+                    const SizedBox(width: 4),
+                    Tr(DeviceState.instance.online ? 'Online' : 'Offline',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: DeviceState.instance.online
+                                ? AppColors.online
+                                : Colors.grey)),
                   ],
                 ),
               ],

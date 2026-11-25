@@ -13,6 +13,14 @@ class DeviceListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: DeviceState.instance,
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
+    final dev = DeviceState.instance;
     return Scaffold(
       backgroundColor: context.pageBg,
       body: SafeArea(
@@ -95,7 +103,7 @@ class DeviceListScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  'R-001',
+                                  dev.deviceId,
                                   style: TextStyle(
                                     color: context.textSub,
                                     fontSize: 12,
@@ -116,14 +124,16 @@ class DeviceListScreen extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.circle,
                                   size: 7,
-                                  color: AppColors.online,
+                                  color: dev.online
+                                      ? AppColors.online
+                                      : Colors.grey,
                                 ),
                                 const SizedBox(width: 5),
                                 Tr(
-                                  'Online',
+                                  dev.online ? 'Online' : 'Offline',
                                   style: TextStyle(
                                     color: context.accent,
                                     fontSize: 11,
@@ -145,7 +155,7 @@ class DeviceListScreen extends StatelessWidget {
                             child: _DeviceStat(
                               icon: Icons.sensors_outlined,
                               label: 'Sensor',
-                              value: 'Aktif',
+                              value: dev.sensorAktif ? 'Aktif' : 'Nonaktif',
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -153,7 +163,7 @@ class DeviceListScreen extends StatelessWidget {
                             child: _DeviceStat(
                               icon: Icons.battery_5_bar,
                               label: 'Baterai',
-                              value: '87%',
+                              value: dev.bateraiText,
                             ),
                           ),
                         ],

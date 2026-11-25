@@ -2,13 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 /// Pengaturan aplikasi: tema, bahasa, notifikasi, dan sensitivitas sensor.
-/// Catatan: pilihan hanya tersimpan selama aplikasi terbuka.
+/// Notifikasi, bahasa, dan sensitivitas disimpan ke Firebase (users/{uid}/pengaturan).
 class AppSettings extends ChangeNotifier {
   AppSettings._();
   static final AppSettings instance = AppSettings._();
 
   static const languages = ['Indonesia', 'English'];
   static const sensitivityLabels = ['Rendah', 'Sedang', 'Tinggi'];
+  static const _sensitivityKeys = ['rendah', 'sedang', 'tinggi'];
+
+  /// Dipasang oleh AuthService: menyimpan perubahan ke Firebase.
+  static void Function(Map<String, Object?> values)? onPersist;
+
+  /// Memuat pengaturan dari Firebase tanpa menyimpannya kembali.
+  void loadFrom(Map<String, dynamic> m) {
+    final n = m['notifikasi'];
+    if (n is bool) _notifications = n;
+    final b = m['bahasa'];
+    if (b is String) _language = b == 'en' ? 1 : 0;
+    final s = m['sensitivitas'];
+    if (s is String) {
+      final i = _sensitivityKeys.indexOf(s);
+      if (i >= 0) _sensitivity = i;
+    }
+    notifyListeners();
+  }
 
   bool _notifications = true;
   int _language = 0; // 0 = Indonesia, 1 = English
@@ -29,18 +47,21 @@ class AppSettings extends ChangeNotifier {
     if (_notifications == v) return;
     _notifications = v;
     notifyListeners();
+    onPersist?.call({'notifikasi': v});
   }
 
   set language(int i) {
     if (_language == i) return;
     _language = i;
     notifyListeners();
+    onPersist?.call({'bahasa': i == 1 ? 'en' : 'id'});
   }
 
   set sensitivity(int i) {
     if (_sensitivity == i) return;
     _sensitivity = i;
     notifyListeners();
+    onPersist?.call({'sensitivitas': _sensitivityKeys[i]});
   }
 
   set dark(bool v) {

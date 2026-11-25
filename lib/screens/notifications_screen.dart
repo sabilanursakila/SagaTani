@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/activity_store.dart';
 import '../models/rat_activity.dart';
 import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
@@ -23,7 +24,14 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activities = sampleRatActivities.take(5).toList();
+    return AnimatedBuilder(
+      animation: ActivityStore.instance,
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
+    final activities = ActivityStore.instance.items.take(5).toList();
 
     return Scaffold(
       backgroundColor: context.pageBg,

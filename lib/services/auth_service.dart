@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../models/device_state.dart';
 import '../models/app_settings.dart';
+import '../models/device_state.dart';
 import '../models/user_session.dart';
 import 'firebase_service.dart';
 
@@ -30,6 +30,29 @@ class AuthService {
     return '${s.replaceAll(RegExp(r'[\s-]'), '').toLowerCase()}@sagatani.app';
   }
 
+  /// Dipanggil sekali dari main(): perubahan pengaturan dan profil
+  /// di aplikasi otomatis disimpan ke Firebase.
+  void bindHooks() {
+    AppSettings.onPersist = (values) {
+      final u = _auth.currentUser;
+      if (u == null) return;
+      FirebaseService.db
+          .ref('users/${u.uid}/pengaturan')
+          .update(values)
+          .catchError((_) {});
+    };
+    UserSession.onProfileSaved = (name, email, phone) {
+      final u = _auth.currentUser;
+      if (u == null) return;
+      FirebaseService.db.ref('users/${u.uid}').update({
+        'nama': name,
+        'kontak': email.isNotEmpty ? email : phone,
+        'email': email,
+        'telepon': phone,
+      }).catchError((_) {});
+    };
+  }
+
   AuthFailure _fromCode(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-credential':
@@ -54,6 +77,15 @@ class AuthService {
         return AuthFailure(
             '${_msg('Gagal masuk', 'Sign-in failed')}: ${e.code}');
     }
+  }
+
+  Map<String, Object?> _settingsMap() {
+    final s = AppSettings.instance;
+    return {
+      'notifikasi': s.notifications,
+      'bahasa': s.isEnglish ? 'en' : 'id',
+      'sensitivitas': const ['rendah', 'sedang', 'tinggi'][s.sensitivity],
+    };
   }
 
   Future<void> login(String identifier, String password) async {
@@ -89,27 +121,31 @@ class AuthService {
         'nama': name.trim(),
         'kontak': contact.trim(),
         'role': 'Pengguna',
-        'pengaturan': {
-          'notifikasi': true,
-          'bahasa': 'id',
-          'sensitivitas': 'sedang',
-        },
+        'pengaturan': _settingsMap(),
       }).timeout(const Duration(seconds: 8));
     } catch (_) {}
     await _muatProfil();
   }
 
-  /// Mengisi UserSession (nama, kontak) dari profil di Firebase.
+  /// Dipanggil saat aplikasi dibuka: true jika masih ada sesi login.
+  Future<bool> restoreSession() async {
+    if (_auth.currentUser == null) return false;
+    try {
+      await _muatProfil().timeout(const Duration(seconds: 10));
+    } catch (_) {}
+    return true;
+  }
+
+  /// Mengisi UserSession dan pengaturan dari profil di Firebase,
+  /// lalu mulai membaca data perangkat.
   Future<void> _muatProfil() async {
     final user = _auth.currentUser;
     if (user == null) return;
+    final ref = FirebaseService.db.ref('users/${user.uid}');
 
     Map<String, dynamic>? data;
     try {
-      final snap = await FirebaseService.db
-          .ref('users/${user.uid}')
-          .get()
-          .timeout(const Duration(seconds: 8));
+      final snap = await ref.get().timeout(const Duration(seconds: 8));
       if (snap.exists && snap.value is Map) {
         data = Map<String, dynamic>.from(snap.value as Map);
       }
@@ -124,17 +160,26 @@ class AuthService {
         (kontak.contains('@') ? kontak.split('@').first : kontak);
 
     UserSession.instance.register(name: nama, contact: kontak);
+
+    // Terapkan pengaturan tersimpan (notifikasi, bahasa, sensitivitas).
+    final p = data?['pengaturan'];
+    if (p is Map) {
+      AppSettings.instance.loadFrom(Map<String, dynamic>.from(p));
+    } else if (data == null) {
+      // Akun belum punya profil di database: buat profil awal.
+      try {
+        await ref.set({
+          'nama': nama,
+          'kontak': kontak,
+          'role': 'Pengguna',
+          'pengaturan': _settingsMap(),
+        }).timeout(const Duration(seconds: 8));
+      } catch (_) {}
+    }
+
     await DeviceState.instance.start();
   }
 
-  /// Dipanggil saat aplikasi dibuka: true jika masih ada sesi login.
-  Future<bool> restoreSession() async {
-    if (_auth.currentUser == null) return false;
-    try {
-      await _muatProfil().timeout(const Duration(seconds: 10));
-    } catch (_) {}
-    return true;
-  }
   Future<void> signOut() async {
     await DeviceState.instance.stop();
     await _auth.signOut();
