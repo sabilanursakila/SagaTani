@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../models/perangkat.dart';
-import '../theme/app_theme.dart';
 import '../utils/l10n.dart';
 import '../widgets/detail_perangkat_sheet.dart';
 

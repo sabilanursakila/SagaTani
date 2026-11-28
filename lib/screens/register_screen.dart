@@ -10,7 +10,6 @@ import '../utils/validators.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/saga_logo.dart';
 import 'login_screen.dart';
-import 'main_shell.dart';
 import 'onboarding_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
